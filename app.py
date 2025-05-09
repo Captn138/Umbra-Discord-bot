@@ -41,7 +41,7 @@ class UmbraClient(discord.Client):
     def load_voice_watch_list_from_db(self):
         query = dbOperations.query_db(self.config.db, 'select id from voice_watch_list')
         for elem in query:
-            self.config.voice_watch_list.append(elem["id"])
+            self.config.voice_watch_list.append(int(elem["id"]))
 
     def check_user_has_rights(self, user: discord.Member, manager_id: int):
         return any([user.guild_permissions.administrator, user.id == 202779792599285760, any(role.id == manager_id for role in user.roles)])

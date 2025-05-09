@@ -15,7 +15,7 @@ def get_new_voice_channel_name(db):
 async def setup(client):
     @client.event
     async def on_voice_state_update(member, before, after):
-        if after.channel and str(after.channel.id) in client.config.voice_watch_list:
+        if after.channel and after.channel.id in client.config.voice_watch_list:
             guild = after.channel.guild
             new_channel = await guild.create_voice_channel(
                 name=get_new_voice_channel_name(client.config.db),
