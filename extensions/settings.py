@@ -22,7 +22,7 @@ class Confirm(discord.ui.View):
 
 
 class Dropdown_remove_temp_name(discord.ui.Select):
-    def __init__(self, db, list: List[str]):
+    def __init__(self, db, list: List[discord.SelectOption]):
         super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
         self.db = db
 
@@ -32,7 +32,7 @@ class Dropdown_remove_temp_name(discord.ui.Select):
 
 
 class Dropdown_remove_watched_channel(discord.ui.Select):
-    def __init__(self, db, list: List[int]):
+    def __init__(self, db, list: List[discord.SelectOption]):
         super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
         self.db = db
 
@@ -59,14 +59,17 @@ async def setup(client):
                 await interaction.response.send_message(f":white_check_mark: `{channel.name}` ajouté à la liste de création de salons", ephemeral=True)
 
     @client.tree.command(description="Retirer un salon vocal de la liste de création de salons")
-    async def remove_watched_channel(interaction: discord.Interaction, channel: discord.VoiceChannel): # TODO dropdown
+    async def remove_watched_channel(interaction: discord.Interaction):
         if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
-            if channel.id in client.config.voice_watch_list:
-                dbOperations.query_db(client.config.db, 'delete from voice_watch_list where id = ?', [channel.id])
-                client.config.voice_watch_list.remove(channel.id)
-                await interaction.response.send_message(f":white_check_mark: `{channel.name}` retiré de la liste de création de salons", ephemeral=True)
+            query = dbOperations.query_db(client.config.db, 'select id from voice_watch_list')
+            if not query:
+                await interaction.response.send_message(':warning: La liste liste de création de salons est vide', ephemeral=True)
             else:
-                await interaction.response.send_message(f":warning: `{channel.name}` n'était pas dans la liste de création de salons", ephemeral=True)
+                list = []
+                for elem in query:
+                    list.append(discord.SelectOption(label=interaction.guild.get_channel(int(elem['id'])).name, value=int(elem['id'])))
+                view = DropdownView(Dropdown_remove_watched_channel(client.config.db, list))
+                await interaction.response.send_message('Choisissez salon à supprimer de la liste liste de création de salons :', ephemeral=True, view=view)
 
     @client.tree.command(description="Retirer TOUS les salons vocaux de la liste de création de salons")
     async def purge_watched_channels(interaction: discord.Interaction):
@@ -103,10 +106,10 @@ async def setup(client):
                 await interaction.response.send_message(':warning: La liste des noms de salons vocaux temporaires est vide', ephemeral=True)
             else:
                 list = []
-                for name in query:
-                    list.append(discord.SelectOption(label=name['name']))
+                for elem in query:
+                    list.append(discord.SelectOption(label=elem['name']))
                 view = DropdownView(Dropdown_remove_temp_name(client.config.db, list))
-                await interaction.response.send_message('Choisissez le nom de salon vocal temporaire à supprimer:', ephemeral=True, view=view)
+                await interaction.response.send_message('Choisissez le nom de salon vocal temporaire à supprimer :', ephemeral=True, view=view)
 
     @client.tree.command(description="Retirer TOUS les noms de salons vocaux temporaires")
     async def purge_temp_names(interaction: discord.Interaction):
@@ -125,6 +128,6 @@ async def setup(client):
                 await interaction.response.send_message(':warning: La liste des noms de salons vocaux temporaires est vide', ephemeral=True)
             else:
                 msg = "Voici la liste des noms de salons vocaux temporaires :\n"
-                for name in query:
-                    msg += f"- {name['name']}\n"
+                for elem in query:
+                    msg += f"- {elem['name']}\n"
                 await interaction.response.send_message(msg, ephemeral=True)
