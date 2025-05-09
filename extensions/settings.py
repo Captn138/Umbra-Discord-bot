@@ -38,6 +38,7 @@ class Dropdown_remove_watched_channel(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         dbOperations.query_db(self.db, 'delete from voice_watch_list where id == ?', [self.values[0]])
+        client.config.voice_watch_list.remove(int(self.values[0]))
         await interaction.response.send_message(':white_check_mark: Salon retiré de la liste de création de salons', ephemeral=True)
 
 

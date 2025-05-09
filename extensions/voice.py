@@ -1,6 +1,7 @@
 import discord
 from random import choice
 from dbOperations import dbOperations
+from extensions.settings import Confirm
 
 
 def get_new_voice_channel_name(db):
@@ -28,3 +29,12 @@ async def setup(client):
             if len(before.channel.members) == 0:
                 await before.channel.delete()
                 client.config.temp_voice_list.remove(before.channel.id)
+
+    @client.tree.command(description="Supprime un salon buggé")
+    async def debug_delete_voice(interaction: discord.Interaction, channel: discord.VoiceChannel):
+        if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
+            view = Confirm()
+            await interaction.response.send_message(f":exclamation: Si vous continuez, {channel.name} sera supprimé. Continuer ?", ephemeral=True, view=view)
+            await view.wait()
+            if view.value is not None and view.value:
+                await channel.delete()
