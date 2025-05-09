@@ -18,7 +18,7 @@ class Feedback(discord.ui.Modal, title='Feedback'):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        await interaction.response.send_message(f"Merci pour ton feedback, {self.name.value}!", ephemeral=True)
+        await interaction.response.send_message(f":white_check_mark: Merci pour ton feedback, {self.name.value}!", ephemeral=True)
         log_channel = interaction.guild.get_channel(self.report_channel)
         embed = discord.Embed(title='Feedback')
         embed.description = self.feedback.value
@@ -28,7 +28,7 @@ class Feedback(discord.ui.Modal, title='Feedback'):
         await log_channel.send(embed=embed, view=url_view)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        await interaction.response.send_message('Oups! Quelque chose a mal tourné.', ephemeral=True)
+        await interaction.response.send_message(':exclamation: Oups! Quelque chose a mal tourné.', ephemeral=True)
         traceback.print_exception(type(error), error, error.__traceback__)
 
 
