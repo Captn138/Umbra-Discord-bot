@@ -71,3 +71,11 @@ client = UmbraClient(intents=intents, initial_extensions=exts, config=dotenv_val
 
 if __name__ == "__main__":
     client.run(client.config.token)
+
+
+# TODO : reaction roles
+# TODO : react messages
+# TODO : groupes pour les salons temp
+# TODO : kick warn ban mute
+# TODO : db user avec commande pour toutes les infos
+# TODO : custom embed
