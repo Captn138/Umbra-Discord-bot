@@ -12,6 +12,12 @@
 - /add_watched_channel, /remove_watched_channel, /purge_watched_channels, /print_watched_channels : manage watched channels for automatic voice cahnnels
 - /add_temp_name, /remove_temp_name, /purge_temp_names, /print_temp_names : manage names for automatic voice channels
 
+### Moderation
+
+- you can report a user by right clicking its profile > Apps > Signaler un utilisateur
+- you can report a message by right clicking it > Apps > Signaler un message
+- /clear : removes X messages, 1 by default
+
 ## Requirements
 
 - python3
