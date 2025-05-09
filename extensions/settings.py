@@ -49,11 +49,14 @@ class DropdownView(discord.ui.View):
 
 async def setup(client):
     @client.tree.command(description="Ajouter un salon vocal à la liste de création de salons")
-    async def add_watched_channel(interaction: discord.Interaction, channel: discord.VoiceChannel): # TODO multiples ajouts
+    async def add_watched_channel(interaction: discord.Interaction, channel: discord.VoiceChannel):
         if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
-            dbOperations.query_db(client.config.db, 'insert into voice_watch_list (id) values ( ? )', [channel.id])
-            client.config.voice_watch_list.append(channel.id)
-            await interaction.response.send_message(f"`{channel.name}` ajouté à la liste de création de salons", ephemeral=True)
+            if channel.id in client.config.voice_watch_list:
+                await interaction.response.send_message(f"`{channel.name}` appartient déjà à la liste de création de salons", ephemeral=True)
+            else:
+                dbOperations.query_db(client.config.db, 'insert into voice_watch_list (id) values ( ? )', [channel.id])
+                client.config.voice_watch_list.append(channel.id)
+                await interaction.response.send_message(f"`{channel.name}` ajouté à la liste de création de salons", ephemeral=True)
 
     @client.tree.command(description="Retirer un salon vocal de la liste de création de salons")
     async def remove_watched_channel(interaction: discord.Interaction, channel: discord.VoiceChannel): # TODO dropdown
