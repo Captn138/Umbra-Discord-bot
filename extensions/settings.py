@@ -32,7 +32,7 @@ class Dropdown_remove_temp_name(discord.ui.Select):
 
 
 class Dropdown_remove_watched_channel(discord.ui.Select):
-    def __init__(self, db, list: List[str]):
+    def __init__(self, db, list: List[int]):
         super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
         self.db = db
 
@@ -52,15 +52,15 @@ async def setup(client):
     async def add_watched_channel(interaction: discord.Interaction, channel: discord.VoiceChannel): # TODO multiples ajouts
         if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
             dbOperations.query_db(client.config.db, 'insert into voice_watch_list (id) values ( ? )', [channel.id])
-            client.config.voice_watch_list.append(str(channel.id))
+            client.config.voice_watch_list.append(channel.id)
             await interaction.response.send_message(f"`{channel.name}` ajouté à la liste de création de salons", ephemeral=True)
 
     @client.tree.command(description="Retirer un salon vocal de la liste de création de salons")
     async def remove_watched_channel(interaction: discord.Interaction, channel: discord.VoiceChannel): # TODO dropdown
         if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
-            if str(channel.id) in client.config.voice_watch_list:
+            if channel.id in client.config.voice_watch_list:
                 dbOperations.query_db(client.config.db, 'delete from voice_watch_list where id = ?', [channel.id])
-                client.config.voice_watch_list.remove(str(channel.id))
+                client.config.voice_watch_list.remove(channel.id)
                 await interaction.response.send_message(f"`{channel.name}` retiré de la liste de création de salons", ephemeral=True)
             else:
                 await interaction.response.send_message(f"`{channel.name}` n'était pas dans la liste de création de salons", ephemeral=True)
