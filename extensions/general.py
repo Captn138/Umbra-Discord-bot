@@ -20,7 +20,7 @@ class Feedback(discord.ui.Modal, title='Feedback'):
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.send_message(f":white_check_mark: Merci pour ton feedback, {self.name.value}!", ephemeral=True)
         log_channel = interaction.guild.get_channel(self.report_channel)
-        embed = discord.Embed(title='Feedback')
+        embed = discord.Embed(colour=discord.Colour.blue(), title='Feedback')
         embed.description = self.feedback.value
         embed.set_author(name=self.name.value)
         embed.timestamp = interaction.created_at
