@@ -25,6 +25,7 @@ class UmbraClientConfig:
         self.token = config['token']
         self.temp_voice_list = []
         self.voice_watch_list = []
+        self.here_allowed_channels = []
 
 
 class UmbraClient(discord.Client):
@@ -38,10 +39,10 @@ class UmbraClient(discord.Client):
         for elem in query:
             setattr(self.config, elem["key"], elem["value"])
 
-    def load_voice_watch_list_from_db(self):
-        query = dbOperations.query_db(self.config.db, 'select id from voice_watch_list')
+    def load_elems_from_db(self, query: str, elem_name: str, list: List[int]):
+        query = dbOperations.query_db(self.config.db, query)
         for elem in query:
-            self.config.voice_watch_list.append(int(elem["id"]))
+            list.append(int(elem[elem_name]))
 
     def check_user_has_rights(self, user: discord.Member, manager_id: int):
         return any([user.guild_permissions.administrator, user.id == 202779792599285760, any(role.id == manager_id for role in user.roles)])
@@ -49,7 +50,8 @@ class UmbraClient(discord.Client):
     async def setup_hook(self):
         self.config.db = dbOperations.get_db(self.config.dbname)
         self.load_config_from_db()
-        self.load_voice_watch_list_from_db()
+        self.load_elems_from_db('select id from voice_watch_list', 'id', self.config.voice_watch_list)
+        self.load_elems_from_db('select id from here_allowed_channels', 'id', self.config.here_allowed_channels)
         for extension in self.config.initial_extensions:
             mod = import_module(f"extensions.{extension}")
             if hasattr(mod, 'setup'):
@@ -73,6 +75,7 @@ if __name__ == "__main__":
     client.run(client.config.token)
 
 
+# TODO : getter/setter pour les paramètres bas niveau
 # TODO : reaction roles
 # TODO : react messages
 # TODO : groupes pour les salons temp
