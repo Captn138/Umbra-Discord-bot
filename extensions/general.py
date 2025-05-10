@@ -41,8 +41,14 @@ async def setup(client):
     async def feedback(interaction: discord.Interaction):
         await interaction.response.send_modal(Feedback(int(client.config.report_channel)))
 
+    @client.tree.command(description="Mentionner here")
+    async def here(interaction: discord.Interaction, message: str):
+        if interaction.channel_id in client.config.here_allowed_channels:
+            await interaction.response.send_message(f"@here\nDe {interaction.user.mention} : {message}")
+
     commands_info = {
         "hello": "Commande pour tester si le bot est allumé",
+        "here" : "Permet de mentionner `here` dans les salons autorisés",
         "feedback": "Permet d'envoyer un feedback au développeur",
         "clear": "Supprime X messages, 1 message par défaut",
         "add_watched_channel": "Ajoute un salon à la liste de salons vocaux automatiques",
