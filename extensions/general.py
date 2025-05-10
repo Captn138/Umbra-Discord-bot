@@ -44,7 +44,14 @@ async def setup(client):
     @client.tree.command(description="Mentionner here")
     async def here(interaction: discord.Interaction, message: str):
         if interaction.channel_id in client.config.here_allowed_channels:
-            await interaction.response.send_message(f"@here\nDe {interaction.user.mention} : {message}", allowed_mentions=discord.AllowedMentions(everyone=True))
+            try:
+                voice_status = await interaction.user.fetch_voice()
+            except:
+                voice_status = None
+            if not voice_status or voice_status.channel is None:
+                await interaction.response.send_message(f"@here\nDe {interaction.user.mention} : {message}", allowed_mentions=discord.AllowedMentions(everyone=True))
+            else:
+                await interaction.response.send_message(f"@here\nDe {interaction.user.mention} dans <#{voice_status.channel.id}>: {message}", allowed_mentions=discord.AllowedMentions(everyone=True))
 
     commands_info = {
         "hello": "Commande pour tester si le bot est allumé",
