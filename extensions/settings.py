@@ -71,7 +71,7 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print"),
     ])
     async def watched_channels(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel = None):
-        if not client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
+        if not client.check_user_has_rights(interaction.user):
             return
         match operation.value:
             case "add":
@@ -118,7 +118,7 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print"),
     ])
     async def temp_name(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], name: str = None):
-        if not client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
+        if not client.check_user_has_rights(interaction.user):
             return
         match operation.value:
             case "add":
@@ -162,7 +162,7 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print"),
     ])
     async def here_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
-        if not client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
+        if not client.check_user_has_rights(interaction.user):
             return
         match operation.value:
             case "add":

@@ -32,7 +32,7 @@ async def setup(client):
 
     @client.tree.command(description="Supprime un salon buggé")
     async def debug_delete_voice(interaction: discord.Interaction, channel: discord.VoiceChannel):
-        if not client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
+        if not client.check_user_has_rights(interaction.user):
             return
         view = Confirm()
         await interaction.response.send_message(f":exclamation: Si vous continuez, {channel.name} sera supprimé. Continuer ?", ephemeral=True, view=view)
