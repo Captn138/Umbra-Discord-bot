@@ -35,7 +35,17 @@ async def setup(client):
         if not client.check_user_has_rights(interaction.user):
             return
         view = Confirm()
-        await interaction.response.send_message(f":exclamation: Si vous continuez, {channel.name} sera supprimé. Continuer ?", ephemeral=True, view=view)
+        await interaction.response.send_message(f":exclamation: Si vous continuez, `{channel.name}` sera supprimé. Continuer ?", ephemeral=True, view=view)
         await view.wait()
         if view.value is not None and view.value:
             await channel.delete()
+
+    @client.tree.command(description="Ajoute un salon vocal à la liste des salons temporaires ouverts")
+    async def debug_register_temp_voice(interaction: discord.Interaction, channel: discord.VoiceChannel):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        view = Confirm()
+        await interaction.response.send_message(f":exclamation: Si vous continuez, `{channel.name}` sera défini comme salon temporaire. Continuer ?", ephemeral=True, view=view)
+        await view.wait()
+        if view.value is not None and view.value:
+            client.config.temp_voice_list.append(channel.id)
