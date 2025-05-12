@@ -1,4 +1,6 @@
 import discord
+from typing import Union, List
+from dbOperations import dbOperations
 
 
 class UserReport(discord.ui.Modal, title='Signalement'):
@@ -57,3 +59,54 @@ async def setup(client):
         if not hasattr(client.config, 'report_channel'):
             return
         await interaction.response.send_modal(UserReport(int(client.config.report_channel), interaction.user, user))
+
+    async def fill_embed_with_infractions(query: List, embed: discord.Embed, client: discord.Client):
+        for elem in query:
+            match elem["type"]:
+                case "warn":
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :warning: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                case "ban":
+                    if elem["until"]:
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :hammer: {await client.fetch_user(elem["author"])} {elem["desc"][:15]} - {discord.utils.format_dt(elem["until"], style="d")}")
+                    else:
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :hammer: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                case "unban":
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :green_square: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                case "mute":
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :mute: {await client.fetch_user(elem["author"])} {elem["desc"][:15]} - {discord.utils.format_dt(elem["until"], style="d")}")
+                case "kick":
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :door: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+
+    async def fill_embed_with_notes(query: List, embed: discord.Embed, client: discord.Client):
+        for elem in query:
+                notesembed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] {await client.fetch_user(elem["author"])} {elem["note"]}")
+
+    @client.tree.command(description="Obtenir des informations sur un utilisateur")
+    async def userinfo(interaction: discord.Interaction, user: discord.Member):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        infoembed = discord.Embed(colour=discord.Colour.blurple(), title=f"Infos utilisateur")
+        infoembed.set_author(name=f"{user.name} ({user.id})", icon_url=user.display_avatar.url)
+        infoembed.description = f"Créé : {discord.utils.format_dt(user.created_at)}\nRejoint : {discord.utils.format_dt(user.joined_at)} ({discord.utils.format_dt(user.joined_at, style='R')})"
+        roles = ''
+        for role in user.roles:
+            if role.name != '@everyone':
+                roles += role.mention + ' '
+        infoembed.add_field(name='Rôles', value=roles)
+        infembed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Dernières infractions utilisateur")
+        query = dbOperations.query_db(client.config.db, 'select id,type,author,time,desc,until from infractions where user == ?', [user.id])
+        if not query:
+            infembed.add_field(name='', value='Aucune infraction')
+        else:
+            fill_embed_with_infractions(query[:5], infembed, client)
+            if len(query) > 5:
+                infembed.add_field(name='', value='...')
+        notesembed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Dernières notes utilisateur")
+        query = dbOperations.query_db(client.config.db, 'select id,note,author,time from notes where user == ?', [user.id])
+        if not query:
+            notesembed.add_field(name='', value='Aucune note')
+        else:
+            fill_embed_with_notes(query[:5], notesembed, client)
+            if len(query) > 5:
+                notesembed.add_field(name='', value='...')
+        await interaction.response.send_message(embeds=[infoembed, infembed, notesembed])
