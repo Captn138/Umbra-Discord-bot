@@ -75,7 +75,7 @@ async def setup(client):
             return
         match operation.value:
             case "add":
-                if channel is None:
+                if not channel:
                     await interaction.response.send_message(':exclamation: Un salon vocal est requis', ephemeral=True)
                 elif channel.id in client.config.voice_watch_list:
                     await interaction.response.send_message(f":warning: `{channel.name}` appartient déjà à la liste de création de salons", ephemeral=True)
@@ -122,7 +122,7 @@ async def setup(client):
             return
         match operation.value:
             case "add":
-                if name is None:
+                if not name:
                     await interaction.response.send_message(':exclamation: Un nom est requis', ephemeral=True)
                 else:
                     dbOperations.query_db(client.config.db, 'insert into voice_channel_names (name) values ( ? )', [name])
@@ -166,7 +166,7 @@ async def setup(client):
             return
         match operation.value:
             case "add":
-                if channel is None:
+                if not channel:
                     await interaction.response.send_message(':exclamation: Un salon est requis', ephemeral=True)
                 elif channel.id in client.config.here_allowed_channels:
                     await interaction.response.send_message(f":warning: `{channel.name}` appartient déjà à la liste des salons here", ephemeral=True)
