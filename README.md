@@ -29,5 +29,5 @@
 
 1. `sqlite3 <db>.sqlite < schema.sql`
 2. `echo token=<token> >> .env` and `echo dbname=<db>.sqlite >> .env`
-3. `sqlite3 <db>.sqlite "insert into settings (key, value) values ('report_channel', '<report_channel_id>'), ('guild_id', '<guild_id>'), ('manager_id', '<manager_role_id>')"`
+3. `sqlite3 <db>.sqlite "insert into settings (key, value) values ('report_channel', '<report_channel_id>'), ('guild_id', '<guild_id>')"`
 4. `make`

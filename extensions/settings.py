@@ -68,7 +68,7 @@ async def setup(client):
         discord.app_commands.Choice(name="add", value="add"),
         discord.app_commands.Choice(name="remove", value="remove"),
         discord.app_commands.Choice(name="purge", value="purge"),
-        discord.app_commands.Choice(name="print", value="print"),
+        discord.app_commands.Choice(name="print", value="print")
     ])
     async def watched_channels(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel = None):
         if not client.check_user_has_rights(interaction.user):
@@ -115,7 +115,7 @@ async def setup(client):
         discord.app_commands.Choice(name="add", value="add"),
         discord.app_commands.Choice(name="remove", value="remove"),
         discord.app_commands.Choice(name="purge", value="purge"),
-        discord.app_commands.Choice(name="print", value="print"),
+        discord.app_commands.Choice(name="print", value="print")
     ])
     async def temp_name(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], name: str = None):
         if not client.check_user_has_rights(interaction.user):
@@ -159,7 +159,7 @@ async def setup(client):
         discord.app_commands.Choice(name="add", value="add"),
         discord.app_commands.Choice(name="remove", value="remove"),
         discord.app_commands.Choice(name="purge", value="purge"),
-        discord.app_commands.Choice(name="print", value="print"),
+        discord.app_commands.Choice(name="print", value="print")
     ])
     async def here_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
         if not client.check_user_has_rights(interaction.user):
@@ -198,3 +198,35 @@ async def setup(client):
                     for id in client.config.here_allowed_channels:
                         msg += f"- <#{id}>\n"
                     await interaction.response.send_message(msg, ephemeral=True)
+
+    @client.tree.command(description="Gérer le rôle de manager")
+    @discord.app_commands.describe(role="Rôle requis si operation = set")
+    @discord.app_commands.choices(operation=[
+        discord.app_commands.Choice(name="get", value="get"),
+        discord.app_commands.Choice(name="set", value="set"),
+        discord.app_commands.Choice(name="unset", value="unset")
+    ])
+    async def manager(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], role: discord.Role = None):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        match operation.value:
+            case "get":
+                if not hasattr(client.config, 'manager_id'):
+                    await interaction.response.send_message(":warning: Le rôle de manager n'est pas défini", ephemeral=True)
+                else:
+                    await interaction.response.send_message(f"Le rôle de manager est : {interaction.guild.get_role(int(client.config.manager_id)).mention}", ephemeral=True)
+            case "set":
+                if not role:
+                    await interaction.response.send_message(':exclamation: Un rôle est requis', ephemeral=True)
+                else:
+                    client.config.manager_id = str(role.id)
+                    dbOperations.query_db(client.config.db, "delete from settings where key == 'manager_id'")
+                    dbOperations.query_db(client.config.db, "insert into settings (key, value) values ('manager_id', ? )", [role.id])
+                    await interaction.response.send_message(f":white_check_mark: {role.mention} est le nouveau rôle de manager", ephemeral=True)
+            case "unset":
+                if not hasattr(client.config, 'manager_id'):
+                    await interaction.response.send_message(":warning: Le rôle de manager n'est pas défini", ephemeral=True)
+                else:
+                    dbOperations.query_db(client.config.db, "delete from settings where key == 'manager_id'")
+                    del client.config.manager_id
+                    await interaction.response.send_message(f":white_check_mark: Le rôle de manager à été désattribué", ephemeral=True)
