@@ -20,7 +20,7 @@
 
 ## Requirements
 
-- python3
+- python3 >= 3.10
 - venv module
 - make
 - sqlite3

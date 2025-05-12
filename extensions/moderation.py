@@ -32,9 +32,10 @@ class UserReport(discord.ui.Modal, title='Signalement'):
 async def setup(client):
     @client.tree.command(description="Supprimer des messages")
     async def clear(interaction: discord.Interaction, quantity: int = 1):
-        if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
-            await interaction.response.send_message(f":arrows_counterclockwise: Suppression de {quantity} messages en cours ...", ephemeral=True)
-            await interaction.channel.purge(limit=quantity)
+        if not client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
+            return
+        await interaction.response.send_message(f":arrows_counterclockwise: Suppression de {quantity} messages en cours ...", ephemeral=True)
+        await interaction.channel.purge(limit=quantity)
 
     @client.tree.context_menu(name='Signaler un message')
     async def report_message(interaction: discord.Interaction, message: discord.Message):
