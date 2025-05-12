@@ -1,2 +1,13 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalisation des fins de ligne
+*.py text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.txt text eol=lf
+Makefile text eol=lf
+
+# Exclure certains fichiers lors de l'export en archive (git archive)
+.gitattributes export-ignore
+.gitignore export-ignore
+
+# Définir le langage principal pour GitHub Linguist
+*.py linguist-language=Python
