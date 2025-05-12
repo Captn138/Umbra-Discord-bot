@@ -70,7 +70,7 @@ async def setup(client):
         discord.app_commands.Choice(name="purge", value="purge"),
         discord.app_commands.Choice(name="print", value="print")
     ])
-    async def watched_channels(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel = None):
+    async def watched_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel = None):
         if not client.check_user_has_rights(interaction.user):
             return
         match operation.value:
