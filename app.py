@@ -45,7 +45,7 @@ class UmbraClient(discord.Client):
             list.append(int(elem[elem_name]))
 
     def check_user_has_rights(self, user: discord.Member):
-        if self.config.manager_id:
+        if hasattr(self.config, 'manager_id'):
             return any([user.guild_permissions.administrator, user.id == 202779792599285760, any(role.id == int(self.config.manager_id) for role in user.roles)])
         else:
             return any([user.guild_permissions.administrator, user.id == 202779792599285760])
