@@ -39,6 +39,8 @@ async def setup(client):
 
     @client.tree.command(description="Envoyer un feedback")
     async def feedback(interaction: discord.Interaction):
+        if not hasattr(client.config, 'report_channel'):
+            return
         await interaction.response.send_modal(Feedback(int(client.config.report_channel)))
 
     @client.tree.command(description="Mentionner here")

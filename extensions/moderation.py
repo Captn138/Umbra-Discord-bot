@@ -39,6 +39,8 @@ async def setup(client):
 
     @client.tree.context_menu(name='Signaler un message')
     async def report_message(interaction: discord.Interaction, message: discord.Message):
+        if not hasattr(client.config, 'report_channel'):
+            return
         await interaction.response.send_message(f":white_check_mark: Merci d'avoir signalé ce message de {message.author.mention} à nos modérateurs.", ephemeral=True)
         log_channel = interaction.guild.get_channel(int(client.config.report_channel))
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Message signalé')
@@ -52,4 +54,6 @@ async def setup(client):
 
     @client.tree.context_menu(name='Signaler un utilisateur')
     async def report_user(interaction: discord.Interaction, user: discord.Member):
+        if not hasattr(client.config, 'report_channel'):
+            return
         await interaction.response.send_modal(UserReport(int(client.config.report_channel), interaction.user, user))

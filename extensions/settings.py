@@ -230,3 +230,35 @@ async def setup(client):
                     dbOperations.query_db(client.config.db, "delete from settings where key == 'manager_id'")
                     del client.config.manager_id
                     await interaction.response.send_message(f":white_check_mark: Le rôle de manager à été désattribué", ephemeral=True)
+
+    @client.tree.command(description="Gérer le salon de report")
+    @discord.app_commands.describe(channel="Salon requis si operation = set")
+    @discord.app_commands.choices(operation=[
+        discord.app_commands.Choice(name="get", value="get"),
+        discord.app_commands.Choice(name="set", value="set"),
+        discord.app_commands.Choice(name="unset", value="unset")
+    ])
+    async def report_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        match operation.value:
+            case "get":
+                if not hasattr(client.config, 'report_channel'):
+                    await interaction.response.send_message(":warning: Le salon de report n'est pas défini", ephemeral=True)
+                else:
+                    await interaction.response.send_message(f"Le salon de report est : {interaction.guild.get_channel(int(client.config.report_channel)).mention}", ephemeral=True)
+            case "set":
+                if not channel:
+                    await interaction.response.send_message(':exclamation: Un salon est requis', ephemeral=True)
+                else:
+                    client.config.report_channel = str(channel.id)
+                    dbOperations.query_db(client.config.db, "delete from settings where key == 'report_channel'")
+                    dbOperations.query_db(client.config.db, "insert into settings (key, value) values ('report_channel', ? )", [channel.id])
+                    await interaction.response.send_message(f":white_check_mark: {channel.mention} est le nouveau salon de report", ephemeral=True)
+            case "unset":
+                if not hasattr(client.config, 'report_channel'):
+                    await interaction.response.send_message(":warning: Le salon de report n'est pas défini", ephemeral=True)
+                else:
+                    dbOperations.query_db(client.config.db, "delete from settings where key == 'report_channel'")
+                    del client.config.report_channel
+                    await interaction.response.send_message(f":white_check_mark: Le salon de report à été désattribué", ephemeral=True)
