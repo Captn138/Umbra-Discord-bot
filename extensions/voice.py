@@ -30,11 +30,24 @@ async def setup(client):
                 await before.channel.delete()
                 client.config.temp_voice_list.remove(before.channel.id)
 
-    @client.tree.command(description="Supprime un salon buggé")
-    async def debug_delete_voice(interaction: discord.Interaction, channel: discord.VoiceChannel):
-        if client.check_user_has_rights(interaction.user, int(client.config.manager_id)):
-            view = Confirm()
-            await interaction.response.send_message(f":exclamation: Si vous continuez, {channel.name} sera supprimé. Continuer ?", ephemeral=True, view=view)
-            await view.wait()
-            if view.value is not None and view.value:
-                await channel.delete()
+    @client.tree.command(description="Commandes de debug")
+    @discord.app_commands.choices(operation=[
+        discord.app_commands.Choice(name="delete_voice", value="delete_voice"),
+        discord.app_commands.Choice(name="register_temp_voice", value="register_temp_voice")
+    ])
+    async def debug(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        match operation.value:
+            case "delete_voice":
+                view = Confirm()
+                await interaction.response.send_message(f":exclamation: Si vous continuez, `{channel.name}` sera supprimé. Continuer ?", ephemeral=True, view=view)
+                await view.wait()
+                if view.value is not None and view.value:
+                    await channel.delete()
+            case "register_temp_voice":
+                view = Confirm()
+                await interaction.response.send_message(f":exclamation: Si vous continuez, `{channel.name}` sera défini comme salon temporaire. Continuer ?", ephemeral=True, view=view)
+                await view.wait()
+                if view.value is not None and view.value:
+                    client.config.temp_voice_list.append(channel.id)

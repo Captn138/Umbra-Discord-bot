@@ -44,12 +44,17 @@ class UmbraClient(discord.Client):
         for elem in query:
             list.append(int(elem[elem_name]))
 
-    def check_user_has_rights(self, user: discord.Member, manager_id: int):
-        return any([user.guild_permissions.administrator, user.id == 202779792599285760, any(role.id == manager_id for role in user.roles)])
+    def check_user_has_rights(self, user: discord.Member):
+        if hasattr(self.config, 'manager_id'):
+            return any([user.guild_permissions.administrator, user.id == 202779792599285760, any(role.id == int(self.config.manager_id) for role in user.roles)])
+        else:
+            return any([user.guild_permissions.administrator, user.id == 202779792599285760])
 
     async def setup_hook(self):
         self.config.db = dbOperations.get_db(self.config.dbname)
         self.load_config_from_db()
+        if not self.config.guild_id:
+            raise Exception("guild_id is a required parameter")
         self.load_elems_from_db('select id from voice_watch_list', 'id', self.config.voice_watch_list)
         self.load_elems_from_db('select id from here_allowed_channels', 'id', self.config.here_allowed_channels)
         for extension in self.config.initial_extensions:
@@ -75,7 +80,6 @@ if __name__ == "__main__":
     client.run(client.config.token)
 
 
-# TODO : getter/setter pour les paramètres bas niveau
 # TODO : reaction roles
 # TODO : react messages
 # TODO : groupes pour les salons temp
