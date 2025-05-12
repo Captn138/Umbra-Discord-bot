@@ -80,7 +80,6 @@ if __name__ == "__main__":
     client.run(client.config.token)
 
 
-# TODO : getter/setter pour les paramètres bas niveau
 # TODO : reaction roles
 # TODO : react messages
 # TODO : groupes pour les salons temp
