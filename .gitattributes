@@ -1,9 +1,11 @@
+# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 # Normalisation des fins de ligne
 *.py text eol=lf
 *.md text eol=lf
 *.sql text eol=lf
 *.txt text eol=lf
 Makefile text eol=lf
+LICENSE text eol=lf
 
 # Exclure certains fichiers lors de l'export en archive (git archive)
 .gitattributes export-ignore

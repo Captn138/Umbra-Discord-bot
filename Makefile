@@ -1,3 +1,4 @@
+# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 DBNAME := $(shell grep '^dbname=' .env | sed 's/^dbname=//')
 
 .SILENT:

@@ -1,3 +1,4 @@
+# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 import discord
 from dbOperations import dbOperations
 from typing import List
