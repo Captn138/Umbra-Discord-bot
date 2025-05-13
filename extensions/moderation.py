@@ -120,7 +120,7 @@ async def setup(client):
         else:
             infoembed.description += 'Not in server'
         infembed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Dernières infractions utilisateur")
-        query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ?', [user.id])
+        query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ? order by rowid desc', [user.id])
         if not query:
             infembed.add_field(name='', value='Aucune infraction')
         else:
@@ -128,7 +128,7 @@ async def setup(client):
             if len(query) > 5:
                 infembed.add_field(name='', value='...')
         notesembed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Dernières notes utilisateur")
-        query = dbOperations.query_db(client.config.db, 'select rowid,note,author,time from notes where user == ?', [user.id])
+        query = dbOperations.query_db(client.config.db, 'select rowid,note,author,time from notes where user == ? order by rowid desc', [user.id])
         if not query:
             notesembed.add_field(name='', value='Aucune note')
         else:
@@ -142,7 +142,7 @@ async def setup(client):
         if not client.check_user_has_rights(interaction.user):
             return
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Toutes les notes utilisateur")
-        query = dbOperations.query_db(client.config.db, 'select rowid,note,author,time from notes where user == ?', [user.id])
+        query = dbOperations.query_db(client.config.db, 'select rowid,note,author,time from notes where user == ? order by rowid desc', [user.id])
         if not query:
             embed.add_field(name='', value='Aucune note')
         else:
@@ -154,7 +154,7 @@ async def setup(client):
         if not client.check_user_has_rights(interaction.user):
             return
         embed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Toutes les infractions utilisateur")
-        query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ?', [user.id])
+        query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ? order by rowid desc', [user.id])
         if not query:
             embed.add_field(name='', value='Aucune infraction')
         else:
@@ -175,6 +175,16 @@ async def setup(client):
         embed.description = f":warning: Vous avez reçu un avertissement sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         await user.send(embed=embed)
         embed.description = f":warning: Utilisateur {user.mention} averti pour la raison suivante :\n> {reason}"
+        await interaction.response.send_message(embed=embed)
+
+    @client.tree.command(description="Expulser un utilisateur")
+    async def kick(interaction: discord.Interaction, user: discord.Member, reason: str):
+        dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "kick", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        embed = discord.Embed(colour=discord.Colour.brand_red(), title='Expulsion')
+        embed.description = f":door: Vous avez été expulsé du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
+        await user.send(embed=embed)
+        await interaction.guild.kick(user, reason=reason)
+        embed.description = f":door: Utilisateur {user.mention} expulsé pour la raison suivante :\n> {reason}"
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Bannir un utilisateur")
