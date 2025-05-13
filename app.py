@@ -90,6 +90,4 @@ if __name__ == "__main__":
 # TODO : reaction roles
 # TODO : react messages
 # TODO : groupes pour les salons temp
-# TODO : kick warn ban mute
-# TODO : db user avec commande pour toutes les infos
 # TODO : custom embed

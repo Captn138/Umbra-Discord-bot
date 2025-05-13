@@ -96,6 +96,8 @@ async def setup(client):
                     embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :green_square: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "mute":
                     embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :mute: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
+                case "unmute":
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :loud_sound: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "kick":
                     embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :door: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
 
@@ -185,6 +187,27 @@ async def setup(client):
         await user.send(embed=embed)
         await interaction.guild.kick(user, reason=reason)
         embed.description = f":door: Utilisateur {user.mention} expulsé pour la raison suivante :\n> {reason}"
+        await interaction.response.send_message(embed=embed)
+
+    @client.tree.command(description="Rendre utilisateur muet")
+    async def mute(interaction: discord.Interaction, user: discord.Member, reason: str, hours: int):
+        td = timedelta(hours=hours)
+        until = datetime.now() + td
+        dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc,until) values ( ?, "mute", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
+        embed = discord.Embed(colour=discord.Colour.brand_red(), title='Silence')
+        embed.description = f":mute: Vous avez été rendu muet sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
+        embed.add_field(name='', value=f"Jusqu'à : {discord.utils.format_dt(until)}")
+        await user.send(embed=embed)
+        await user.timeout(td, reason=reason)
+        embed.description = f":mute: Utilisateur {user.mention} rendu muet pour la raison suivante :\n> {reason}"
+        await interaction.response.send_message(embed=embed)
+
+    @client.tree.command(description="Retirer le mutisme d'un utilisateur")
+    async def unmute(interaction: discord.Interaction, user: discord.Member, reason: str):
+        dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "unmute", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        embed = discord.Embed(colour=discord.Colour.green(), title='Mutisme désactivé')
+        embed.description = f":loud_sound: Mutisme de l'utilisateur {user.mention} désactivé pour la raison suivante :\n> {reason}"
+        await user.timeout(None, reason=reason)
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Bannir un utilisateur")
