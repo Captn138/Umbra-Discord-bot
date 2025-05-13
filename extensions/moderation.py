@@ -163,6 +163,31 @@ async def setup(client):
             await fill_embed_with_infractions(query, embed)
         await interaction.response.send_message(embed=embed)
 
+    @client.tree.command(description="Obtenir toutes les infos sur une infraction")
+    async def infinfo(interaction: discord.Interaction, infraction: int):
+        query = dbOperations.query_db(client.config.db, 'select user,type,author,time,desc,until from infractions where rowid == ?', [infraction])
+        embed = discord.Embed(colour=discord.Colour.dark_red(), title='Infraction')
+        if query:
+            print(query)
+            print(query[0])
+            print(query[0]["user"])
+            embed.add_field(name='ID', value=infraction, inline=False)
+            user = await client.fetch_user(query[0]["user"])
+            embed.add_field(name='Destinataire', value=f"{user.name} ({user.id}) {user.mention}", inline=False)
+            embed.add_field(name='Type', value=query[0]["type"], inline=False)
+            embed.add_field(name='Auteur', value=f"<@{query[0]["author"]}>", inline=False)
+            embed.add_field(name='Raison', value=query[0]["desc"], inline=False)
+            embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]["time"])), style="d"), inline=False)
+            if query[0]["until"]:
+                embed.add_field(name="Jusqu'à", value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]["until"])), style="d"), inline=False)
+        else:
+            embed.description = "L'infraction demandée n'existe pas"
+        await interaction.response.send_message(embed=embed)
+
+    @client.tree.command(description="Obtenir toutes les infos sur une note")
+    async def noteinfo(interaction: discord.Interaction, note: int):
+        pass
+
     @client.tree.command(description="Ajouter une note à un utilisateur")
     async def note(interaction: discord.Interaction, user: discord.Member, note: str):
         dbOperations.query_db(client.config.db, 'insert into notes (user,time,author,note) values ( ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
