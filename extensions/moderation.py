@@ -143,6 +143,18 @@ async def setup(client):
             await fill_embed_with_notes(query, embed)
         await interaction.response.send_message(embed=embed)
 
+    @client.tree.command(description="Obtenir toutes les infractions d'un utilisateur")
+    async def inf(interaction: discord.Interaction, user: discord.Member):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        embed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Toutes les infractions utilisateur")
+        query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ?', [user.id])
+        if not query:
+            embed.add_field(name='', value='Aucune infraction')
+        else:
+            await fill_embed_with_infractions(query, embed)
+        await interaction.response.send_message(embed=embed)
+
     @client.tree.command(description="Ajouter une note à un utilisateur")
     async def note(interaction: discord.Interaction, user: discord.Member, note : str):
         dbOperations.query_db(client.config.db, 'insert into notes (user,time,author,note) values ( ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
@@ -154,7 +166,7 @@ async def setup(client):
     async def warn(interaction: discord.Interaction, user: discord.Member, reason : str):
         dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "warn", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.yellow(), title='Avertissement')
-        embed.description = f":warning: Vous avez reçu un avertissement pour la raison suivante :\n> {reason}"
+        embed.description = f":warning: Vous avez reçu un avertissement sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         await user.send(embed=embed)
         embed.description = f":warning: Utilisateur {user.mention} averti pour la raison suivante :\n> {reason}"
         await interaction.response.send_message(embed=embed)
