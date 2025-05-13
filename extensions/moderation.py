@@ -99,7 +99,7 @@ async def setup(client):
 
     async def fill_embed_with_notes(query: List, embed: discord.Embed):
         for elem in query:
-                embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
+            embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
     async def userinfo(interaction: discord.Interaction, user: discord.Member):
@@ -130,6 +130,18 @@ async def setup(client):
             if len(query) > 5:
                 notesembed.add_field(name='', value='...')
         await interaction.response.send_message(embeds=[infoembed, infembed, notesembed])
+
+    @client.tree.command(description="Obtenir toutes les notes d'un utilisateur")
+    async def notes(interaction: discord.Interaction, user: discord.Member):
+        if not client.check_user_has_rights(interaction.user):
+            return
+        embed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Toutes les notes utilisateur")
+        query = dbOperations.query_db(client.config.db, 'select rowid,note,author,time from notes where user == ?', [user.id])
+        if not query:
+            embed.add_field(name='', value='Aucune note')
+        else:
+            await fill_embed_with_notes(query, embed)
+        await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Ajouter une note à un utilisateur")
     async def note(interaction: discord.Interaction, user: discord.Member, note : str):
