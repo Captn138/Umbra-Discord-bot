@@ -68,6 +68,8 @@ class UmbraClient(discord.Client):
         await self.tree.sync(guild=umbra_guild)
 
     async def on_ready(self):
+        del self.config.dbname
+        del self.config.token
         logger.info(f"{client.user.name} (id: {client.user.id}) logged in !")
 
 
