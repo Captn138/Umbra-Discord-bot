@@ -43,15 +43,17 @@ class UserReport(discord.ui.Modal, title='Signalement'):
 async def on_ready(self):
     self.scheduler.start()
 
-async def daily_unban(client: discord.Client):
-    # query = dbOperations.query_db(client.config.db, 'select user,until from infractions where type == "ban"')
-    # for elem in query:
-    #     if elem["until"] and datetime.today() > datetime.fromtimestamp():
-    #         user = await client.fetch_user(elem["user"])
-    #         guild.unban(user, reason='Levée de sanction automatique')
-    pass
-
 async def setup(client):
+    async def daily_unban():
+        query = dbOperations.query_db(client.config.db, 'select user,until from infractions where type == "ban"')
+        for elem in query:
+            if elem["until"] and datetime.now() > datetime.fromtimestamp(int(elem["until"])):
+                user = await client.fetch_user(elem["user"])
+                guild = await client.fetch_guild(client.config.guild_id)
+                reason = 'Levée de sanction automatique'
+                dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), client.user.id, reason])
+                guild.unban(user, reason=reason)
+
     @client.tree.command(description="Supprimer des messages")
     async def clear(interaction: discord.Interaction, quantity: int = 1):
         if not client.check_user_has_rights(interaction.user):
@@ -156,14 +158,14 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Ajouter une note à un utilisateur")
-    async def note(interaction: discord.Interaction, user: discord.Member, note : str):
+    async def note(interaction: discord.Interaction, user: discord.Member, note: str):
         dbOperations.query_db(client.config.db, 'insert into notes (user,time,author,note) values ( ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title='Note')
         embed.description = f":notepad_spiral: Vous avez ajouté une note à {user.mention} :\n> {note}"
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Avertir un utilisateur")
-    async def warn(interaction: discord.Interaction, user: discord.Member, reason : str):
+    async def warn(interaction: discord.Interaction, user: discord.Member, reason: str):
         dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "warn", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.yellow(), title='Avertissement')
         embed.description = f":warning: Vous avez reçu un avertissement sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
@@ -171,5 +173,17 @@ async def setup(client):
         embed.description = f":warning: Utilisateur {user.mention} averti pour la raison suivante :\n> {reason}"
         await interaction.response.send_message(embed=embed)
 
+    @client.tree.command(description="Bannir un utilisateur")
+    async def ban(interaction: discord.Interaction, user: discord.Member, time: str, reason: str):
+        pass
+
+    @client.tree.command(description="Débannir un utilisateur")
+    async def unban(interaction: discord.Interaction, user: discord.User, reason: str):
+        dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        await interaction.guild.unban(user, reason=reason)
+        embed = discord.Embed(colour=discord.Colour.green(), title='Débannissement')
+        embed.description = f":green_square: Utilisateur {user.mention} débanni pour la raison suivante :\n> {reason}"
+        await interaction.response.send_message(embed=embed)
+
     client.scheduler = AsyncIOScheduler()
-    client.scheduler.add_job(daily_unban, CronTrigger(hour=0, minute=0, second=0), args=[client])
+    client.scheduler.add_job(daily_unban, CronTrigger(hour=0, minute=0, second=0))
