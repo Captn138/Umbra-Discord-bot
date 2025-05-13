@@ -1,4 +1,9 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+
+if __name__ == "__main__":
+    raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
+
+
 import discord, traceback
 
 
