@@ -9,7 +9,7 @@ from typing import Union, List
 from dbOperations import dbOperations
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class UserReport(discord.ui.Modal, title='Signalement'):
@@ -52,7 +52,7 @@ async def setup(client):
                 guild = await client.fetch_guild(client.config.guild_id)
                 reason = 'Levée de sanction automatique'
                 dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), client.user.id, reason])
-                guild.unban(user, reason=reason)
+                await guild.unban(user, reason=reason)
 
     @client.tree.command(description="Supprimer des messages")
     async def clear(interaction: discord.Interaction, quantity: int = 1):
@@ -104,17 +104,21 @@ async def setup(client):
             embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
-    async def userinfo(interaction: discord.Interaction, user: discord.Member):
+    async def userinfo(interaction: discord.Interaction, user: discord.User):
         if not client.check_user_has_rights(interaction.user):
             return
         infoembed = discord.Embed(colour=discord.Colour.blurple(), title=f"Infos utilisateur")
         infoembed.set_author(name=f"{user.name} ({user.id})", icon_url=user.display_avatar.url)
-        infoembed.description = f"Créé : {discord.utils.format_dt(user.created_at)}\nRejoint : {discord.utils.format_dt(user.joined_at)} ({discord.utils.format_dt(user.joined_at, style='R')})"
-        roles = ''
-        for role in user.roles:
-            if role.name != '@everyone':
-                roles += role.mention + ' '
-        infoembed.add_field(name='Rôles', value=roles)
+        infoembed.description = f"Créé : {discord.utils.format_dt(user.created_at)}\nRejoint : "
+        if hasattr(user, 'joined_at'):
+            infoembed.description += discord.utils.format_dt(user.joined_at, style='R')
+            roles = ''
+            for role in user.roles:
+                if role.name != '@everyone':
+                    roles += role.mention + ' '
+            infoembed.add_field(name='Rôles', value=roles)
+        else:
+            infoembed.description += 'Not in server'
         infembed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Dernières infractions utilisateur")
         query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ?', [user.id])
         if not query:
@@ -174,8 +178,19 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Bannir un utilisateur")
-    async def ban(interaction: discord.Interaction, user: discord.Member, time: str, reason: str):
-        pass
+    async def ban(interaction: discord.Interaction, user: discord.Member, reason: str, days: int = None):
+        embed = discord.Embed(colour=discord.Colour.dark_red(), title='Bannissement')
+        embed.description = f":hammer: Vous avez été banni du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
+        if days is not None:
+            until = datetime.now() + timedelta(days=days)
+            dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc,until) values ( ?, "ban", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
+            embed.add_field(name='', value=f"Jusqu'à : {discord.utils.format_dt(until, style="d")}")
+        else:
+            dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "ban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        await user.send(embed=embed)
+        await interaction.guild.ban(user, reason=reason)
+        embed.description = f":hammer: Utilisateur {user.mention} banni pour la raison suivante :\n> {reason}"
+        await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Débannir un utilisateur")
     async def unban(interaction: discord.Interaction, user: discord.User, reason: str):
