@@ -9,6 +9,7 @@ from typing import Union, List
 from dbOperations import dbOperations
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from datetime import datetime
 
 
 class UserReport(discord.ui.Modal, title='Signalement'):
@@ -42,7 +43,12 @@ class UserReport(discord.ui.Modal, title='Signalement'):
 async def on_ready(self):
     self.scheduler.start()
 
-def daily_unban(client: discord.Client):
+async def daily_unban(client: discord.Client):
+    # query = dbOperations.query_db(client.config.db, 'select user,until from infractions where type == "ban"')
+    # for elem in query:
+    #     if elem["until"] and datetime.today() > datetime.fromtimestamp():
+    #         user = await client.fetch_user(elem["user"])
+    #         guild.unban(user, reason='Levée de sanction automatique')
     pass
 
 async def setup(client):
@@ -74,26 +80,26 @@ async def setup(client):
             return
         await interaction.response.send_modal(UserReport(int(client.config.report_channel), interaction.user, user))
 
-    async def fill_embed_with_infractions(query: List, embed: discord.Embed, client: discord.Client):
+    async def fill_embed_with_infractions(query: List, embed: discord.Embed):
         for elem in query:
             match elem["type"]:
                 case "warn":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :warning: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :warning: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "ban":
                     if elem["until"]:
-                        embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :hammer: {await client.fetch_user(elem["author"])} {elem["desc"][:15]} - {discord.utils.format_dt(elem["until"], style="d")}")
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :hammer: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
                     else:
-                        embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :hammer: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :hammer: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "unban":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :green_square: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :green_square: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "mute":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :mute: {await client.fetch_user(elem["author"])} {elem["desc"][:15]} - {discord.utils.format_dt(elem["until"], style="d")}")
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :mute: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
                 case "kick":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] :door: {await client.fetch_user(elem["author"])} {elem["desc"][:15]}")
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :door: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
 
-    async def fill_embed_with_notes(query: List, embed: discord.Embed, client: discord.Client):
+    async def fill_embed_with_notes(query: List, embed: discord.Embed):
         for elem in query:
-                notesembed.add_field(name='', value=f"[{discord.utils.format_dt(elem["time"], style="d")} - {elem["id"]:03d}] {await client.fetch_user(elem["author"])} {elem["note"]}")
+                embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
     async def userinfo(interaction: discord.Interaction, user: discord.Member):
@@ -108,22 +114,38 @@ async def setup(client):
                 roles += role.mention + ' '
         infoembed.add_field(name='Rôles', value=roles)
         infembed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Dernières infractions utilisateur")
-        query = dbOperations.query_db(client.config.db, 'select id,type,author,time,desc,until from infractions where user == ?', [user.id])
+        query = dbOperations.query_db(client.config.db, 'select rowid,type,author,time,desc,until from infractions where user == ?', [user.id])
         if not query:
             infembed.add_field(name='', value='Aucune infraction')
         else:
-            fill_embed_with_infractions(query[:5], infembed, client)
+            await fill_embed_with_infractions(query[:5], infembed)
             if len(query) > 5:
                 infembed.add_field(name='', value='...')
         notesembed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Dernières notes utilisateur")
-        query = dbOperations.query_db(client.config.db, 'select id,note,author,time from notes where user == ?', [user.id])
+        query = dbOperations.query_db(client.config.db, 'select rowid,note,author,time from notes where user == ?', [user.id])
         if not query:
             notesembed.add_field(name='', value='Aucune note')
         else:
-            fill_embed_with_notes(query[:5], notesembed, client)
+            await fill_embed_with_notes(query[:5], notesembed)
             if len(query) > 5:
                 notesembed.add_field(name='', value='...')
         await interaction.response.send_message(embeds=[infoembed, infembed, notesembed])
+
+    @client.tree.command(description="Ajouter une note à un utilisateur")
+    async def note(interaction: discord.Interaction, user: discord.Member, note : str):
+        dbOperations.query_db(client.config.db, 'insert into notes (user,time,author,note) values ( ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
+        embed = discord.Embed(colour=discord.Colour.dark_blue(), title='Note')
+        embed.description = f":notepad_spiral: Vous avez ajouté une note à {user.mention} :\n> {note}"
+        await interaction.response.send_message(embed=embed)
+
+    @client.tree.command(description="Avertir un utilisateur")
+    async def warn(interaction: discord.Interaction, user: discord.Member, reason : str):
+        dbOperations.query_db(client.config.db, 'insert into infractions (user,type,time,author,desc) values ( ?, "warn", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        embed = discord.Embed(colour=discord.Colour.yellow(), title='Avertissement')
+        embed.description = f":warning: Vous avez reçu un avertissement pour la raison suivante :\n> {reason}"
+        await user.send(embed=embed)
+        embed.description = f":warning: Utilisateur {user.mention} averti pour la raison suivante :\n> {reason}"
+        await interaction.response.send_message(embed=embed)
 
     client.scheduler = AsyncIOScheduler()
     client.scheduler.add_job(daily_unban, CronTrigger(hour=0, minute=0, second=0), args=[client])

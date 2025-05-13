@@ -40,7 +40,7 @@ This project is licensed under the [GNU AGPL v3](LICENSE).
 
 1. `sqlite3 <db>.sqlite < schema.sql`
 2. `echo token=<token> >> .env` and `echo dbname=<db>.sqlite >> .env`
-3. `sqlite3 <db>.sqlite "insert into settings (key, value) values ('guild_id', '<guild_id>'), ('manager_id', '<manager_role_id>')"`
+3. `sqlite3 <db>.sqlite "insert into settings (key, value) values ('guild_id', '<guild_id>')"`
 4. `make`
 
 If you do not want to use the Makefile, here are the installation steps :
