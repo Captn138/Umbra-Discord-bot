@@ -71,6 +71,10 @@ class UmbraClient(discord.Client):
         del self.config.dbname
         del self.config.token
         logger.info(f"{client.user.name} (id: {client.user.id}) logged in !")
+        for extension in self.config.initial_extensions:
+            mod = import_module(f"extensions.{extension}")
+            if hasattr(mod, 'on_ready') and callable(getattr(mod, 'on_ready')):
+                await mod.on_ready(self)
 
 
 intents = discord.Intents.default()

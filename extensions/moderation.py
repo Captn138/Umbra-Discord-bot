@@ -7,6 +7,8 @@ if __name__ == "__main__":
 import discord
 from typing import Union, List
 from dbOperations import dbOperations
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 
 class UserReport(discord.ui.Modal, title='Signalement'):
@@ -36,6 +38,12 @@ class UserReport(discord.ui.Modal, title='Signalement'):
         await interaction.response.send_message(':exclamation: Oups! Quelque chose a mal tourné.', ephemeral=True)
         traceback.print_exception(type(error), error, error.__traceback__)
 
+
+async def on_ready(self):
+    self.scheduler.start()
+
+def daily_unban(client: discord.Client):
+    pass
 
 async def setup(client):
     @client.tree.command(description="Supprimer des messages")
@@ -116,3 +124,6 @@ async def setup(client):
             if len(query) > 5:
                 notesembed.add_field(name='', value='...')
         await interaction.response.send_message(embeds=[infoembed, infembed, notesembed])
+
+    client.scheduler = AsyncIOScheduler()
+    client.scheduler.add_job(daily_unban, CronTrigger(hour=0, minute=0, second=0), args=[client])
