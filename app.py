@@ -49,7 +49,7 @@ class UmbraClient(discord.Client):
         if hasattr(self.config, 'manager_id'):
             return any([user.guild_permissions.administrator, any(role.id == int(self.config.manager_id) for role in user.roles)])
         else:
-            return any([user.guild_permissions.administrator])
+            return user.guild_permissions.administrator
 
     async def setup_hook(self):
         self.config.db = dbOperations.get_db(self.config.dbname)
