@@ -2,6 +2,9 @@
 
 ## License
 This project is licensed under the [GNU AGPL v3](LICENSE).
+- All modifications of this code must be published under the same license, even for SaaS use cases
+- You can comercialize a modification of this code
+- You must attribute the source of the code
 
 ## Features
 
