@@ -24,7 +24,7 @@ This project is licensed under the [GNU AGPL v3](LICENSE).
 - you can report a user by right clicking its profile > Apps > Signaler un utilisateur
 - you can report a message by right clicking it > Apps > Signaler un message
 - /clear : removes X messages, 1 by default
-- /here_channel : manager here-allowed channels
+- /here_channel : manage here-allowed channels
 - /report_channel : manage the report channel
 - /manager : manage the manager role
 - /debug : some useful commands to debug
@@ -44,6 +44,7 @@ This project is licensed under the [GNU AGPL v3](LICENSE).
 4. `make`
 
 If you do not want to use the Makefile, here are the installation steps :
+
 4. `python3 -m venv venv`
 5. `. venv/bin/activate`
 6. `pip3 install -r requirements.txt`
