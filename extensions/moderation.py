@@ -168,9 +168,6 @@ async def setup(client):
         query = dbOperations.query_db(client.config.db, 'select user,type,author,time,desc,until from infractions where rowid == ?', [infraction])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Infraction')
         if query:
-            print(query)
-            print(query[0])
-            print(query[0]["user"])
             embed.add_field(name='ID', value=infraction, inline=False)
             user = await client.fetch_user(query[0]["user"])
             embed.add_field(name='Destinataire', value=f"{user.name} ({user.id}) {user.mention}", inline=False)
@@ -184,15 +181,26 @@ async def setup(client):
             embed.description = "L'infraction demandée n'existe pas"
         await interaction.response.send_message(embed=embed)
 
-    @client.tree.command(description="Obtenir toutes les infos sur une note")
-    async def noteinfo(interaction: discord.Interaction, note: int):
-        pass
-
     @client.tree.command(description="Ajouter une note à un utilisateur")
     async def note(interaction: discord.Interaction, user: discord.Member, note: str):
         dbOperations.query_db(client.config.db, 'insert into notes (user,time,author,note) values ( ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title='Note')
         embed.description = f":notepad_spiral: Vous avez ajouté une note à {user.mention} :\n> {note}"
+        await interaction.response.send_message(embed=embed)
+
+    @client.tree.command(description="Obtenir toutes les infos sur une note")
+    async def noteinfo(interaction: discord.Interaction, note: int):
+        query = dbOperations.query_db(client.config.db, 'select user,note,author,time from notes where rowid == ?', [note])
+        embed = discord.Embed(colour=discord.Colour.dark_red(), title='Note')
+        if query:
+            embed.add_field(name='ID', value=note, inline=False)
+            user = await client.fetch_user(query[0]["user"])
+            embed.add_field(name='Sujet', value=f"{user.name} ({user.id}) {user.mention}", inline=False)
+            embed.add_field(name='Auteur', value=f"<@{query[0]["author"]}>", inline=False)
+            embed.add_field(name='Note', value=query[0]["note"], inline=False)
+            embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]["time"])), style="d"), inline=False)
+        else:
+            embed.description = "La note demandée n'existe pas"
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Avertir un utilisateur")
