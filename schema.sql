@@ -1,4 +1,5 @@
 -- This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+
 START TRANSACTION;
 CREATE TABLE IF NOT EXISTS settings(
     skey VARCHAR(32) PRIMARY KEY NOT NULL,
