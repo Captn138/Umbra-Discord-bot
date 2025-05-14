@@ -50,11 +50,11 @@ class UmbraClient(discord.Client):
         for elem in query:
             list.append(int(elem[elem_name]))
 
-    def check_user_has_rights(self, user: discord.Member):
+    def check_user_has_rights(self, interaction: discord.Interaction):
         if hasattr(self.config, 'manager_id'):
-            return any([user.guild_permissions.administrator, any(role.id == int(self.config.manager_id) for role in user.roles)])
+            return any([interaction.user.guild_permissions.administrator, any(role.id == int(self.config.manager_id) for role in interaction.user.roles)])
         else:
-            return user.guild_permissions.administrator
+            return interaction.user.guild_permissions.administrator
 
     async def setup_hook(self):
         self.load_config_from_db()
@@ -70,6 +70,9 @@ class UmbraClient(discord.Client):
         umbra_guild = discord.Object(id=self.config.guild_id)
         self.tree.copy_global_to(guild=umbra_guild)
         await self.tree.sync(guild=umbra_guild)
+        # test = self.tree.get_commands(guild=umbra_guild, type=discord.AppCommandType.chat_input)
+        # for elem in test:
+        #     print(elem.name, elem.description)
 
     async def on_ready(self):
         del self.config.token
@@ -84,6 +87,15 @@ intents = discord.Intents.default()
 intents.message_content = True
 exts = ['general', 'moderation', 'voice', 'settings']
 client = UmbraClient(intents=intents, initial_extensions=exts, config=dotenv_values('.env'))
+
+@client.tree.error
+async def on_tree_error(interaction, error):
+    if isinstance(error, discord.app_commands.CheckFailure):
+        await interaction.response.send_message(":exclamation: Tu n'as pas la permission d'utiliser cette commande.", ephemeral=True)
+    else:
+        await interaction.response.send_message(":exclamation: Une erreur est survenue.", ephemeral=True)
+        logger.error(f"[on_app_command_error] {type(error).__name__}: {error}")
+        traceback.print_exc()
 
 
 if __name__ == "__main__":

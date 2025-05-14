@@ -55,9 +55,8 @@ async def setup(client):
                 await guild.unban(user, reason=reason)
 
     @client.tree.command(description="Supprimer des messages")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def clear(interaction: discord.Interaction, quantity: int = 1):
-        if not client.check_user_has_rights(interaction.user):
-            return
         await interaction.response.send_message(f":arrows_counterclockwise: Suppression de {quantity} messages en cours ...", ephemeral=True)
         await interaction.channel.purge(limit=quantity)
 
@@ -106,9 +105,8 @@ async def setup(client):
             embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def userinfo(interaction: discord.Interaction, user: discord.User):
-        if not client.check_user_has_rights(interaction.user):
-            return
         infoembed = discord.Embed(colour=discord.Colour.blurple(), title=f"Infos utilisateur")
         infoembed.set_author(name=f"{user.name} ({user.id})", icon_url=user.display_avatar.url)
         infoembed.description = f"Créé : {discord.utils.format_dt(user.created_at)}\nRejoint : "
@@ -140,9 +138,8 @@ async def setup(client):
         await interaction.response.send_message(embeds=[infoembed, infembed, notesembed])
 
     @client.tree.command(description="Obtenir toutes les notes d'un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def notes(interaction: discord.Interaction, user: discord.Member):
-        if not client.check_user_has_rights(interaction.user):
-            return
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Toutes les notes utilisateur")
         query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id,note,author,time from notes where user = ? order by id desc', [user.id])
         if not query:
@@ -152,9 +149,8 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Obtenir toutes les infractions d'un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def inf(interaction: discord.Interaction, user: discord.Member):
-        if not client.check_user_has_rights(interaction.user):
-            return
         embed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Toutes les infractions utilisateur")
         query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id,type,author,time,description,until from infractions where user = ? order by id desc', [user.id])
         if not query:
@@ -164,6 +160,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Obtenir toutes les infos sur une infraction")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def infinfo(interaction: discord.Interaction, infraction: int):
         query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,type,author,time,description,until from infractions where id = ?', [infraction])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Infraction')
@@ -182,6 +179,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Ajouter une note à un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def note(interaction: discord.Interaction, user: discord.Member, note: str):
         dbOperations.query_db(dbOperations.get_db(client.config), 'insert into notes (user,time,author,note) values ( ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title='Note')
@@ -189,6 +187,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Obtenir toutes les infos sur une note")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def noteinfo(interaction: discord.Interaction, note: int):
         query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,note,author,time from notes where id = ?', [note])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Note')
@@ -204,6 +203,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Avertir un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def warn(interaction: discord.Interaction, user: discord.Member, reason: str):
         dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "warn", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.yellow(), title='Avertissement')
@@ -213,6 +213,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Expulser un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def kick(interaction: discord.Interaction, user: discord.Member, reason: str):
         dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "kick", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.brand_red(), title='Expulsion')
@@ -223,6 +224,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Rendre un utilisateur muet")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def mute(interaction: discord.Interaction, user: discord.Member, reason: str, hours: int):
         td = timedelta(hours=hours)
         until = datetime.now() + td
@@ -236,6 +238,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Retirer le mutisme d'un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def unmute(interaction: discord.Interaction, user: discord.Member, reason: str):
         dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "unmute", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.green(), title='Mutisme désactivé')
@@ -244,6 +247,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Bannir un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def ban(interaction: discord.Interaction, user: discord.Member, reason: str, days: int = None):
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Bannissement')
         embed.description = f":hammer: Vous avez été banni du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
@@ -259,6 +263,7 @@ async def setup(client):
         await interaction.response.send_message(embed=embed)
 
     @client.tree.command(description="Débannir un utilisateur")
+    @discord.app_commands.check(client.check_user_has_rights)
     async def unban(interaction: discord.Interaction, user: discord.User, reason: str):
         dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         await interaction.guild.unban(user, reason=reason)

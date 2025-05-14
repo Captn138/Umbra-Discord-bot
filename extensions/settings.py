@@ -69,6 +69,7 @@ class DropdownView(discord.ui.View):
 
 async def setup(client):
     @client.tree.command(description="Gérer les salons de la liste de création de salons")
+    @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.describe(channel="Salon vocal requis si operation = add")
     @discord.app_commands.choices(operation=[
         discord.app_commands.Choice(name="add", value="add"),
@@ -77,8 +78,6 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def watched_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel = None):
-        if not client.check_user_has_rights(interaction.user):
-            return
         match operation.value:
             case "add":
                 if not channel:
@@ -116,6 +115,7 @@ async def setup(client):
                     await interaction.response.send_message(msg, ephemeral=True)
 
     @client.tree.command(description="Gérer les salons vocaux temporaires")
+    @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.describe(name="Nom requis si operation = add")
     @discord.app_commands.choices(operation=[
         discord.app_commands.Choice(name="add", value="add"),
@@ -124,8 +124,6 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def temp_name(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], name: str = None):
-        if not client.check_user_has_rights(interaction.user):
-            return
         match operation.value:
             case "add":
                 if not name:
@@ -160,6 +158,7 @@ async def setup(client):
                     await interaction.response.send_message(msg, ephemeral=True)
 
     @client.tree.command(description="Gérer les salons de la liste des salons here")
+    @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.describe(channel="Salon requis si operation = add")
     @discord.app_commands.choices(operation=[
         discord.app_commands.Choice(name="add", value="add"),
@@ -168,8 +167,6 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def here_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
-        if not client.check_user_has_rights(interaction.user):
-            return
         match operation.value:
             case "add":
                 if not channel:
@@ -206,6 +203,7 @@ async def setup(client):
                     await interaction.response.send_message(msg, ephemeral=True)
 
     @client.tree.command(description="Gérer le rôle de manager")
+    @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.describe(role="Rôle requis si operation = set")
     @discord.app_commands.choices(operation=[
         discord.app_commands.Choice(name="get", value="get"),
@@ -213,8 +211,6 @@ async def setup(client):
         discord.app_commands.Choice(name="unset", value="unset")
     ])
     async def manager(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], role: discord.Role = None):
-        if not client.check_user_has_rights(interaction.user):
-            return
         match operation.value:
             case "get":
                 if not hasattr(client.config, 'manager_id'):
@@ -238,6 +234,7 @@ async def setup(client):
                     await interaction.response.send_message(f":white_check_mark: Le rôle de manager à été désattribué", ephemeral=True)
 
     @client.tree.command(description="Gérer le salon de report")
+    @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.describe(channel="Salon requis si operation = set")
     @discord.app_commands.choices(operation=[
         discord.app_commands.Choice(name="get", value="get"),
@@ -245,8 +242,6 @@ async def setup(client):
         discord.app_commands.Choice(name="unset", value="unset")
     ])
     async def report_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
-        if not client.check_user_has_rights(interaction.user):
-            return
         match operation.value:
             case "get":
                 if not hasattr(client.config, 'report_channel'):
