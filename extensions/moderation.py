@@ -45,13 +45,13 @@ async def on_ready(self):
 
 async def setup(client):
     async def daily_unban():
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,until from infractions where type == "ban"')
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,until from infractions where type = "ban"')
         for elem in query:
             if elem["until"] and datetime.now() > datetime.fromtimestamp(int(elem["until"])):
                 user = await client.fetch_user(elem["user"])
                 guild = await client.fetch_guild(client.config.guild_id)
                 reason = 'Levée de sanction automatique'
-                dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), client.user.id, reason])
+                dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), client.user.id, reason])
                 await guild.unban(user, reason=reason)
 
     @client.tree.command(description="Supprimer des messages")
@@ -86,24 +86,24 @@ async def setup(client):
         for elem in query:
             match elem["type"]:
                 case "warn":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :warning: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :warning: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "ban":
                     if elem["until"]:
-                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :hammer: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :hammer: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
                     else:
-                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :hammer: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :hammer: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "unban":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :green_square: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :green_square: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "mute":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :mute: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :mute: <@{elem["author"]}> {elem["desc"][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem["until"])), style="d")}", inline=False)
                 case "unmute":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :loud_sound: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :loud_sound: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
                 case "kick":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] :door: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] :door: <@{elem["author"]}> {elem["desc"][:30]}", inline=False)
 
     async def fill_embed_with_notes(query: List, embed: discord.Embed):
         for elem in query:
-            embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["rowid"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
+            embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem["time"])), style="d")} - `{elem["id"]:03d}`] <@{elem["author"]}> {elem["note"]}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
     async def userinfo(interaction: discord.Interaction, user: discord.User):
@@ -122,7 +122,7 @@ async def setup(client):
         else:
             infoembed.description += 'Not in server'
         infembed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Dernières infractions utilisateur")
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select rowid,type,author,time,desc,until from infractions where user == ? order by rowid desc', [user.id])
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id,type,author,time,description,until from infractions where user = ? order by id desc', [user.id])
         if not query:
             infembed.add_field(name='', value='Aucune infraction')
         else:
@@ -130,7 +130,7 @@ async def setup(client):
             if len(query) > 5:
                 infembed.add_field(name='', value='...')
         notesembed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Dernières notes utilisateur")
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select rowid,note,author,time from notes where user == ? order by rowid desc', [user.id])
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id,note,author,time from notes where user = ? order by id desc', [user.id])
         if not query:
             notesembed.add_field(name='', value='Aucune note')
         else:
@@ -144,7 +144,7 @@ async def setup(client):
         if not client.check_user_has_rights(interaction.user):
             return
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title=f"Toutes les notes utilisateur")
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select rowid,note,author,time from notes where user == ? order by rowid desc', [user.id])
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id,note,author,time from notes where user = ? order by id desc', [user.id])
         if not query:
             embed.add_field(name='', value='Aucune note')
         else:
@@ -156,7 +156,7 @@ async def setup(client):
         if not client.check_user_has_rights(interaction.user):
             return
         embed = discord.Embed(colour=discord.Colour.dark_red(), title=f"Toutes les infractions utilisateur")
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select rowid,type,author,time,desc,until from infractions where user == ? order by rowid desc', [user.id])
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id,type,author,time,description,until from infractions where user = ? order by id desc', [user.id])
         if not query:
             embed.add_field(name='', value='Aucune infraction')
         else:
@@ -165,7 +165,7 @@ async def setup(client):
 
     @client.tree.command(description="Obtenir toutes les infos sur une infraction")
     async def infinfo(interaction: discord.Interaction, infraction: int):
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,type,author,time,desc,until from infractions where rowid == ?', [infraction])
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,type,author,time,description,until from infractions where id = ?', [infraction])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Infraction')
         if query:
             embed.add_field(name='ID', value=infraction, inline=False)
@@ -173,7 +173,7 @@ async def setup(client):
             embed.add_field(name='Destinataire', value=f"{user.name} ({user.id}) {user.mention}", inline=False)
             embed.add_field(name='Type', value=query[0]["type"], inline=False)
             embed.add_field(name='Auteur', value=f"<@{query[0]["author"]}>", inline=False)
-            embed.add_field(name='Raison', value=query[0]["desc"], inline=False)
+            embed.add_field(name='Raison', value=query[0]["description"], inline=False)
             embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]["time"])), style="d"), inline=False)
             if query[0]["until"]:
                 embed.add_field(name="Jusqu'à", value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]["until"])), style="d"), inline=False)
@@ -190,7 +190,7 @@ async def setup(client):
 
     @client.tree.command(description="Obtenir toutes les infos sur une note")
     async def noteinfo(interaction: discord.Interaction, note: int):
-        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,note,author,time from notes where rowid == ?', [note])
+        query = dbOperations.query_db(dbOperations.get_db(client.config), 'select user,note,author,time from notes where id = ?', [note])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title='Note')
         if query:
             embed.add_field(name='ID', value=note, inline=False)
@@ -205,7 +205,7 @@ async def setup(client):
 
     @client.tree.command(description="Avertir un utilisateur")
     async def warn(interaction: discord.Interaction, user: discord.Member, reason: str):
-        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc) values ( ?, "warn", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "warn", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.yellow(), title='Avertissement')
         embed.description = f":warning: Vous avez reçu un avertissement sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         await user.send(embed=embed)
@@ -214,7 +214,7 @@ async def setup(client):
 
     @client.tree.command(description="Expulser un utilisateur")
     async def kick(interaction: discord.Interaction, user: discord.Member, reason: str):
-        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc) values ( ?, "kick", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "kick", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.brand_red(), title='Expulsion')
         embed.description = f":door: Vous avez été expulsé du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         await user.send(embed=embed)
@@ -226,7 +226,7 @@ async def setup(client):
     async def mute(interaction: discord.Interaction, user: discord.Member, reason: str, hours: int):
         td = timedelta(hours=hours)
         until = datetime.now() + td
-        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc,until) values ( ?, "mute", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
+        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description,until) values ( ?, "mute", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
         embed = discord.Embed(colour=discord.Colour.brand_red(), title='Silence')
         embed.description = f":mute: Vous avez été rendu muet sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         embed.add_field(name='', value=f"Jusqu'à : {discord.utils.format_dt(until)}")
@@ -237,7 +237,7 @@ async def setup(client):
 
     @client.tree.command(description="Retirer le mutisme d'un utilisateur")
     async def unmute(interaction: discord.Interaction, user: discord.Member, reason: str):
-        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc) values ( ?, "unmute", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "unmute", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.green(), title='Mutisme désactivé')
         embed.description = f":loud_sound: Mutisme de l'utilisateur {user.mention} désactivé pour la raison suivante :\n> {reason}"
         await user.timeout(None, reason=reason)
@@ -249,10 +249,10 @@ async def setup(client):
         embed.description = f":hammer: Vous avez été banni du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         if days is not None:
             until = datetime.now() + timedelta(days=days)
-            dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc,until) values ( ?, "ban", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
+            dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description,until) values ( ?, "ban", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
             embed.add_field(name='', value=f"Jusqu'à : {discord.utils.format_dt(until, style="d")}")
         else:
-            dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc) values ( ?, "ban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+            dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "ban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         await user.send(embed=embed)
         await interaction.guild.ban(user, reason=reason)
         embed.description = f":hammer: Utilisateur {user.mention} banni pour la raison suivante :\n> {reason}"
@@ -260,7 +260,7 @@ async def setup(client):
 
     @client.tree.command(description="Débannir un utilisateur")
     async def unban(interaction: discord.Interaction, user: discord.User, reason: str):
-        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,desc) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
+        dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "unban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         await interaction.guild.unban(user, reason=reason)
         embed = discord.Embed(colour=discord.Colour.green(), title='Débannissement')
         embed.description = f":green_square: Utilisateur {user.mention} débanni pour la raison suivante :\n> {reason}"
