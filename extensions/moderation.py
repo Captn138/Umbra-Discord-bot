@@ -222,7 +222,7 @@ async def setup(client):
         embed.description = f":door: Utilisateur {user.mention} expulsé pour la raison suivante :\n> {reason}"
         await interaction.response.send_message(embed=embed)
 
-    @client.tree.command(description="Rendre utilisateur muet")
+    @client.tree.command(description="Rendre un utilisateur muet")
     async def mute(interaction: discord.Interaction, user: discord.Member, reason: str, hours: int):
         td = timedelta(hours=hours)
         until = datetime.now() + td
