@@ -34,7 +34,7 @@ class Dropdown_remove_here_channel(discord.ui.Select):
         self.configList = configList
 
     async def callback(self, interaction: discord.Interaction):
-        dbOperations.query_db(dbOperations.get_db(self.config), 'delete from here_allowed_channels where id == ?', [self.values[0]])
+        dbOperations.query_db(self.db, 'delete from here_allowed_channels where id = ?', [self.values[0]])
         self.configList.remove(int(self.values[0]))
         await interaction.response.send_message(':white_check_mark: Salon retiré de la liste des salons here', ephemeral=True)
 
@@ -45,7 +45,7 @@ class Dropdown_remove_temp_name(discord.ui.Select):
         self.db = db
 
     async def callback(self, interaction: discord.Interaction):
-        dbOperations.query_db(dbOperations.get_db(self.config), 'delete from voice_channel_names where name == ?', [self.values[0]])
+        dbOperations.query_db(self.db, 'delete from voice_channel_names where name = ?', [self.values[0]])
         await interaction.response.send_message(':white_check_mark: Nom de salon vocal temporaire supprimé', ephemeral=True)
 
 
@@ -56,7 +56,7 @@ class Dropdown_remove_watched_channel(discord.ui.Select):
         self.configList = configList
 
     async def callback(self, interaction: discord.Interaction):
-        dbOperations.query_db(dbOperations.get_db(self.config), 'delete from voice_watch_list where id == ?', [self.values[0]])
+        dbOperations.query_db(self.db, 'delete from voice_watch_list where id = ?', [self.values[0]])
         self.configList.remove(int(self.values[0]))
         await interaction.response.send_message(':white_check_mark: Salon retiré de la liste de création de salons', ephemeral=True)
 
@@ -226,14 +226,14 @@ async def setup(client):
                     await interaction.response.send_message(':exclamation: Un rôle est requis', ephemeral=True)
                 else:
                     client.config.manager_id = str(role.id)
-                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey == 'manager_id'")
+                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey = 'manager_id'")
                     dbOperations.query_db(dbOperations.get_db(client.config), "insert into settings (skey, svalue) values ('manager_id', ? )", [role.id])
                     await interaction.response.send_message(f":white_check_mark: {role.mention} est le nouveau rôle de manager", ephemeral=True)
             case "unset":
                 if not hasattr(client.config, 'manager_id'):
                     await interaction.response.send_message(":warning: Le rôle de manager n'est pas défini", ephemeral=True)
                 else:
-                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey == 'manager_id'")
+                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey = 'manager_id'")
                     del client.config.manager_id
                     await interaction.response.send_message(f":white_check_mark: Le rôle de manager à été désattribué", ephemeral=True)
 
@@ -258,13 +258,13 @@ async def setup(client):
                     await interaction.response.send_message(':exclamation: Un salon est requis', ephemeral=True)
                 else:
                     client.config.report_channel = str(channel.id)
-                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey == 'report_channel'")
+                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey = 'report_channel'")
                     dbOperations.query_db(dbOperations.get_db(client.config), "insert into settings (skey, svalue) values ('report_channel', ? )", [channel.id])
                     await interaction.response.send_message(f":white_check_mark: {channel.mention} est le nouveau salon de report", ephemeral=True)
             case "unset":
                 if not hasattr(client.config, 'report_channel'):
                     await interaction.response.send_message(":warning: Le salon de report n'est pas défini", ephemeral=True)
                 else:
-                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey == 'report_channel'")
+                    dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey = 'report_channel'")
                     del client.config.report_channel
                     await interaction.response.send_message(f":white_check_mark: Le salon de report à été désattribué", ephemeral=True)

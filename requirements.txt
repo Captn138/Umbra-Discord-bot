@@ -1,7 +1,5 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
-discord
-discord[voice]
-python-dotenv
-PyNaCl
 apscheduler
+discord
 mariadb
+python-dotenv

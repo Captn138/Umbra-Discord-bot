@@ -25,7 +25,10 @@ class dbOperations:
         try:
             cur = db.cursor(dictionary=True)
             cur.execute(query, args)
-            rv = cur.fetchall()
+            try:
+                rv = cur.fetchall()
+            except:
+                rv = None
             cur.close()
             return (rv[0] if rv else None) if one else rv
         except Exception:
