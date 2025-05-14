@@ -4,3 +4,4 @@ discord[voice]
 python-dotenv
 PyNaCl
 apscheduler
+mariadb

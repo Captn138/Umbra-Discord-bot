@@ -22,8 +22,12 @@ logger.addHandler(handler)
 class UmbraClientConfig:
     def __init__(self, initial_extensions: List[str], config: dict):
         self.initial_extensions = initial_extensions
-        self.dbname = config['dbname']
-        self.token = config['token']
+        self.dbname = config.get('dbname', 'umbra')
+        self.dbuser = config.get('dbuser', 'root')
+        self.dbpass = config.get('dbpass', '')
+        self.dbhost = config.get('dbhost', '127.0.0.1')
+        self.dbport = int(config.get('dbport', '3306'))
+        self.token = config.get('token', None)
         self.temp_voice_list = []
         self.voice_watch_list = []
         self.here_allowed_channels = []
@@ -36,12 +40,12 @@ class UmbraClient(discord.Client):
         self.tree = discord.app_commands.CommandTree(self)
 
     def load_config_from_db(self):
-        query = dbOperations.query_db(self.config.db, 'select key, value from settings')
+        query = dbOperations.query_db(dbOperations.get_db(self.config), 'select skey, svalue from settings')
         for elem in query:
-            setattr(self.config, elem["key"], elem["value"])
+            setattr(self.config, elem["skey"], elem["svalue"])
 
     def load_elems_from_db(self, query: str, elem_name: str, list: List[int]):
-        query = dbOperations.query_db(self.config.db, query)
+        query = dbOperations.query_db(dbOperations.get_db(self.config), query)
         for elem in query:
             list.append(int(elem[elem_name]))
 
@@ -52,7 +56,6 @@ class UmbraClient(discord.Client):
             return user.guild_permissions.administrator
 
     async def setup_hook(self):
-        self.config.db = dbOperations.get_db(self.config.dbname)
         self.load_config_from_db()
         if not self.config.guild_id:
             raise Exception("guild_id is a required parameter")
@@ -68,7 +71,6 @@ class UmbraClient(discord.Client):
         await self.tree.sync(guild=umbra_guild)
 
     async def on_ready(self):
-        del self.config.dbname
         del self.config.token
         logger.info(f"{client.user.name} (id: {client.user.id}) logged in !")
         for extension in self.config.initial_extensions:

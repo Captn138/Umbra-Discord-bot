@@ -1,7 +1,32 @@
 -- This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
-CREATE TABLE settings(key text, value text);
-CREATE TABLE voice_channel_names(name text);
-CREATE TABLE voice_watch_list(id text);
-CREATE TABLE here_allowed_channels(id text);
-CREATE TABLE infractions(user text, type text, time text, author text, desc text, until text);
-CREATE TABLE notes(user text, time text, author text, note text);
+START TRANSACTION;
+CREATE TABLE IF NOT EXISTS settings(
+    skey VARCHAR(32) PRIMARY KEY NOT NULL,
+	svalue BIGINT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS voice_channel_names(
+    name VARCHAR(64) PRIMARY KEY NOT NULL
+);
+CREATE TABLE IF NOT EXISTS voice_watch_list(
+    id BIGINT PRIMARY KEY NOT NULL
+);
+CREATE TABLE IF NOT EXISTS here_allowed_channels(
+    id BIGINT PRIMARY KEY NOT NULL
+);
+CREATE TABLE IF NOT EXISTS infractions(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	user BIGINT NOT NULL,
+	type VARCHAR(8) NOT NULL,
+	time BIGINT NOT NULL,
+	author BIGINT NOT NULL,
+	description TEXT(65535) NOT NULL,
+	until BIGINT NULL
+);
+CREATE TABLE IF NOT EXISTS notes(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	user BIGINT NOT NULL,
+	time BIGINT NOT NULL,
+	author BIGINT NOT NULL,
+	note TEXT(65535) NOT NULL
+);
+COMMIT;

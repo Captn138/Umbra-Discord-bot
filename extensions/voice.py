@@ -25,7 +25,7 @@ async def setup(client):
         if after.channel and after.channel.id in client.config.voice_watch_list:
             guild = after.channel.guild
             new_channel = await guild.create_voice_channel(
-                name=get_new_voice_channel_name(client.config.db),
+                name=get_new_voice_channel_name(dbOperations.get_db(client.config)),
                 overwrites=after.channel.overwrites,
                 category=after.channel.category
             )

@@ -38,6 +38,8 @@ This project is licensed under the [GNU AGPL v3](LICENSE).
 
 ## Installation
 
+DEPRECATED
+
 1. `sqlite3 <db>.sqlite < schema.sql`
 2. `echo token=<token> >> .env` and `echo dbname=<db>.sqlite >> .env`
 3. `sqlite3 <db>.sqlite "insert into settings (key, value) values ('guild_id', '<guild_id>')"`
