@@ -1,4 +1,5 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+
 import discord, logging, logging.handlers
 from dotenv import dotenv_values
 from dbOperations import dbOperations
