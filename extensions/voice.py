@@ -37,13 +37,12 @@ async def setup(client):
                 client.config.temp_voice_list.remove(before.channel.id)
 
     @client.tree.command(description="Commandes de debug")
+    @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.choices(operation=[
         discord.app_commands.Choice(name="delete_voice", value="delete_voice"),
         discord.app_commands.Choice(name="register_temp_voice", value="register_temp_voice")
     ])
     async def debug(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel):
-        if not client.check_user_has_rights(interaction.user):
-            return
         match operation.value:
             case "delete_voice":
                 view = Confirm()

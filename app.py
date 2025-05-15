@@ -1,6 +1,6 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
-import discord, logging, logging.handlers
+import discord, logging, logging.handlers, traceback
 from dotenv import dotenv_values
 from dbOperations import dbOperations
 from typing import List
@@ -70,9 +70,6 @@ class UmbraClient(discord.Client):
         umbra_guild = discord.Object(id=self.config.guild_id)
         self.tree.copy_global_to(guild=umbra_guild)
         await self.tree.sync(guild=umbra_guild)
-        # test = self.tree.get_commands(guild=umbra_guild, type=discord.AppCommandType.chat_input)
-        # for elem in test:
-        #     print(elem.name, elem.description)
 
     async def on_ready(self):
         del self.config.token

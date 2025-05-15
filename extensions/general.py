@@ -41,7 +41,7 @@ class Feedback(discord.ui.Modal, title='Feedback'):
 async def setup(client):
     @client.tree.command(description="Bonjour !")
     async def hello(interaction: discord.Interaction):
-        await interaction.response.send_message(f'Hi, {interaction.user.mention}', ephemeral=True)
+        await interaction.response.send_message(f"Salut, {interaction.user.mention} !", ephemeral=True)
 
     @client.tree.command(description="Envoyer un feedback")
     async def feedback(interaction: discord.Interaction):
@@ -49,7 +49,7 @@ async def setup(client):
             return
         await interaction.response.send_modal(Feedback(int(client.config.report_channel)))
 
-    @client.tree.command(description="Mentionner here")
+    @client.tree.command(description="Mentionner here avec un message personnalisé")
     async def here(interaction: discord.Interaction, message: str):
         if interaction.channel_id in client.config.here_allowed_channels:
             try:
@@ -61,31 +61,47 @@ async def setup(client):
             else:
                 await interaction.response.send_message(f"@here\nDe {interaction.user.mention} dans <#{voice_status.channel.id}>: {message}", allowed_mentions=discord.AllowedMentions(everyone=True))
 
-    # commands_info = {
-    #     "hello": "Commande pour tester si le bot est allumé",
-    #     "here" : "Permet de mentionner `here` dans les salons autorisés",
-    #     "feedback": "Permet d'envoyer un feedback au développeur",
-    #     "clear": "Supprime X messages, 1 message par défaut",
-    #     "add_watched_channel": "Ajoute un salon à la liste de salons vocaux automatiques",
-    #     "remove_watched_channel": "Supprime un salon de la liste de salons vocaux automatiques",
-    #     "purge_watched_channels": "Supprime la liste de salons vocaux automatiques",
-    #     "print_watched_channels": "Affiche la liste de salons vocaux automatiques",
-    #     "add_temp_name": "Ajoute un nom de salon vocal automatique",
-    #     "remove_temp_name": "Supprime un nom de salon vocal automatique",
-    #     "purge_temp_names": "Supprime tous les noms de salons vocaux automatiques",
-    #     "print_temp_names": "Affiche les noms de salons vocaux automatiques"
-    # }
+    @client.tree.command(name="help", description="Affiche l'aide pour une commande")
+    @discord.app_commands.describe(command="Commande à propos de laquelle afficher l'aide")
+    async def help_command(interaction: discord.Interaction, command: str = None):
+        chat_commands = client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.chat_input)
+        if command:
+            embed = discord.Embed(colour=discord.Colour.blurple(), title=f"Aide commande")
+            for cmd in chat_commands:
+                if cmd.name == command and (not cmd.checks or client.check_user_has_rights(interaction)):
+                    embed.add_field(name='', value=f"**/{cmd.name}** : {cmd.description}", inline=False)
+            if embed.fields:
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+            else:
+                await interaction.response.send_message(":exclamation: Cette commande n'existe pas ou tu n'y as pas accès", ephemeral=True)
+        else:
+            userembed = discord.Embed(colour=discord.Colour.blurple(), title=f"Commandes utilisateur")
+            modoembed = discord.Embed(colour=discord.Colour.brand_red(), title=f"Commandes modérateurs")
+            modoembed.description = "Commandes réservées aux utilisateurs disposant des droits de gestion"
+            appembed = discord.Embed(colour=discord.Colour.blurple(), title=f"Interaction application")
+            for cmd in chat_commands:
+                if cmd.checks:
+                    modoembed.add_field(name='', value=f"**/{cmd.name}** : {cmd.description}", inline=False)
+                else:
+                    userembed.add_field(name='', value=f"**/{cmd.name}** : {cmd.description}", inline=False)
+            for inter in client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.user):
+                appembed.add_field(name='En interagissant avec un utilisateur', value=f"{inter.name}", inline=False)
+            for inter in client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.message):
+                appembed.add_field(name='En interagissant avec un message', value=f"{inter.name}", inline=False)
+            embedslist = []
+            if userembed.fields:
+                embedslist.append(userembed)
+            if modoembed.fields and client.check_user_has_rights(interaction):
+                embedslist.append(modoembed)
+            if appembed.fields:
+                embedslist.append(appembed)
+            await interaction.response.send_message(embeds=embedslist, ephemeral=True)
 
-    # @client.tree.command(name="help", description="Affiche l'aide pour une commande.")
-    # @discord.app_commands.describe(command="Commande à propos de laquelle afficher l'aide")
-    # async def help_command(interaction: discord.Interaction, command: str):
-    #     description = commands_info.get(command, "Aucune information disponible.")
-    #     await interaction.response.send_message(f"**/{command}** — {description}", ephemeral=True)
-
-    # @help_command.autocomplete("command")
-    # async def help_autocomplete(interaction: discord.Interaction, current: str):
-    #     return [
-    #         discord.app_commands.Choice(name=cmd, value=cmd)
-    #         for cmd in commands_info
-    #         if current.lower() in cmd.lower()
-    #     ]
+    @help_command.autocomplete("command")
+    async def help_autocomplete(interaction: discord.Interaction, current: str):
+        chat_commands = client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.chat_input)
+        return [
+            discord.app_commands.Choice(name=cmd.name, value=cmd.name)
+            for cmd in chat_commands
+            if current.lower() in cmd.name.lower() and (not cmd.checks or client.check_user_has_rights(interaction))
+        ]
