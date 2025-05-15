@@ -43,7 +43,7 @@ class UmbraClient(discord.Client):
     def load_config_from_db(self):
         query = dbOperations.query_db(dbOperations.get_db(self.config), 'select skey, svalue from settings')
         for elem in query:
-            setattr(self.config, elem["skey"], elem["svalue"])
+            setattr(self.config, elem['skey'], elem['svalue'])
 
     def load_elems_from_db(self, query: str, elem_name: str, list: List[int]):
         query = dbOperations.query_db(dbOperations.get_db(self.config), query)
