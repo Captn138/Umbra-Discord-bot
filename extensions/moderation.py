@@ -88,21 +88,21 @@ async def setup(client):
                     embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :warning: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
                 case "ban":
                     if elem['until']:
-                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] :hammer: <@{elem['author']}> {elem['desc'][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem['until'])), style="d")}", inline=False)
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :hammer: <@{elem['author']}> {elem['desc'][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem['until'])), style='d')}", inline=False)
                     else:
-                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] :hammer: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
+                        embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :hammer: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
                 case "unban":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] :green_square: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :green_square: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
                 case "mute":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] :mute: <@{elem['author']}> {elem['desc'][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem['until'])), style="d")}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :mute: <@{elem['author']}> {elem['desc'][:30]} - {discord.utils.format_dt(datetime.fromtimestamp(int(elem['until'])), style='d')}", inline=False)
                 case "unmute":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] :loud_sound: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :loud_sound: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
                 case "kick":
-                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] :door: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
+                    embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :door: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
 
     async def fill_embed_with_notes(query: List, embed: discord.Embed):
         for elem in query:
-            embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style="d")} - `{elem['id']:03d}`] <@{elem['author']}> {elem['note']}", inline=False)
+            embed.add_field(name='', value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] <@{elem['author']}> {elem['note']}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
@@ -171,9 +171,9 @@ async def setup(client):
             embed.add_field(name='Type', value=query[0]['type'], inline=False)
             embed.add_field(name='Auteur', value=f"<@{query[0]['author']}>", inline=False)
             embed.add_field(name='Raison', value=query[0]['description'], inline=False)
-            embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]['time'])), style="d"), inline=False)
+            embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]['time'])), style='d'), inline=False)
             if query[0]['until']:
-                embed.add_field(name="Jusqu'à", value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]['until'])), style="d"), inline=False)
+                embed.add_field(name="Jusqu'à", value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]['until'])), style='d'), inline=False)
         else:
             embed.description = "L'infraction demandée n'existe pas"
         await interaction.response.send_message(embed=embed)
@@ -197,7 +197,7 @@ async def setup(client):
             embed.add_field(name='Sujet', value=f"{user.name} ({user.id}) {user.mention}", inline=False)
             embed.add_field(name='Auteur', value=f"<@{query[0]['author']}>", inline=False)
             embed.add_field(name='Note', value=query[0]['note'], inline=False)
-            embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]['time'])), style="d"), inline=False)
+            embed.add_field(name='Date', value=discord.utils.format_dt(datetime.fromtimestamp(int(query[0]['time'])), style='d'), inline=False)
         else:
             embed.description = "La note demandée n'existe pas"
         await interaction.response.send_message(embed=embed)
@@ -254,7 +254,7 @@ async def setup(client):
         if days is not None:
             until = datetime.now() + timedelta(days=days)
             dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description,until) values ( ?, "ban", ?, ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
-            embed.add_field(name='', value=f"Jusqu'à : {discord.utils.format_dt(until, style="d")}")
+            embed.add_field(name='', value=f"Jusqu'à : {discord.utils.format_dt(until, style='d')}")
         else:
             dbOperations.query_db(dbOperations.get_db(client.config), 'insert into infractions (user,type,time,author,description) values ( ?, "ban", ?, ?, ?)', [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         await user.send(embed=embed)
