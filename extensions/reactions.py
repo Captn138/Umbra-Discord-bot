@@ -8,25 +8,28 @@ import discord
 
 
 async def setup(client):
+    def build_string(string: str, message: discord.Message):
+        string = string.replace('%USER%', message.author.mention)
+        return string
+
     @client.event
     async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
-        if payload.user_id == client.user.id: # ne trigger pas sur ses propres réactions
+        if payload.user_id == client.user.id:
             return
-        channel = client.get_channel(payload.channel_id) # get channel
+        channel = client.get_channel(payload.channel_id)
         if channel is None:
-            channel = await self.fetch_channel(payload.channel_id)
+            channel = await client.fetch_channel(payload.channel_id)
         try:
-            message = await channel.fetch_message(payload.message_id) # get message
+            message = await channel.fetch_message(payload.message_id)
         except Exception:
             return
         if message.author == client.user:
             return
-        for reaction in message.reactions: # parse emotes
-            async for user in reaction.users(): # for user for emote
-                if reaction.emoji == payload.emoji and user == client.user: # ne trigger pas si le bot a déjà emoté
+        for reaction in message.reactions:
+            async for user in reaction.users():
+                if reaction.emoji == payload.emoji and user == client.user:
                     return
-        for id, msg in client.config.emoji_reacts.items():
-            print(payload.emoji.id, int(id))
-            if payload.emoji.id == int(id):
+        for emoji_id, text in client.config.emoji_reacts.items():
+            if str(payload.emoji) == emoji_id:
                 await message.add_reaction(payload.emoji)
-                await message.reply(msg)
+                await message.reply(build_string(text, message))

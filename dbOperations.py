@@ -19,6 +19,7 @@ class dbOperations:
                         database = config.dbname
             )
         config.db.auto_reconnect = True
+        config.db.autocommit = True
         return config.db
 
     def query_db(db: mariadb.connections.Connection, query: str, args: List = [], one = False):

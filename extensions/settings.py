@@ -293,7 +293,7 @@ async def setup(client):
                 if not emoji or not message:
                     await interaction.response.send_message(':exclamation: Un emoji et un message sont requis', ephemeral=True)
                 elif re.compile(r"^<a?:\w+:\d+>$").match(emoji) or emoji in em.EMOJI_DATA:
-                    for emoji_id, msg in client.config.emoji_reacts:
+                    for emoji_id, msg in client.config.emoji_reacts.items():
                         if emoji_id == emoji:
                             await interaction.response.send_message(f":warning: {emoji} appartient déjà à la liste des réactions d'emojis", ephemeral=True)
                             return
