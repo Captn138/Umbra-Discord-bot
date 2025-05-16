@@ -19,10 +19,7 @@ async def setup(client):
         channel = client.get_channel(payload.channel_id)
         if channel is None:
             channel = await client.fetch_channel(payload.channel_id)
-        try:
-            message = await channel.fetch_message(payload.message_id)
-        except Exception:
-            return
+        message = await channel.fetch_message(payload.message_id)
         if message.author == client.user:
             return
         for reaction in message.reactions:
