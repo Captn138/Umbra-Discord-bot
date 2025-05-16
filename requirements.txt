@@ -2,5 +2,6 @@
 
 apscheduler
 discord
+emoji
 mariadb
 python-dotenv

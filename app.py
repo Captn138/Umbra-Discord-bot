@@ -3,7 +3,7 @@
 import discord, logging, logging.handlers, traceback
 from dotenv import dotenv_values
 from dbOperations import dbOperations
-from typing import List
+from typing import List, Dict
 from importlib import import_module
 
 
@@ -32,6 +32,7 @@ class UmbraClientConfig:
         self.temp_voice_list = []
         self.voice_watch_list = []
         self.here_allowed_channels = []
+        self.emoji_reacts = {}
 
 
 class UmbraClient(discord.Client):
@@ -50,6 +51,11 @@ class UmbraClient(discord.Client):
         for elem in query:
             list.append(int(elem[elem_name]))
 
+    def load_dict_from_db(self, query: str, key: str, value: str, dict: Dict[int, str]):
+        query = dbOperations.query_db(dbOperations.get_db(self.config), query)
+        for elem in query:
+            dict.update({str(elem[key]): elem[value]})
+
     def check_user_has_rights(self, interaction: discord.Interaction):
         if hasattr(self.config, 'manager_id'):
             return any([interaction.user.guild_permissions.administrator, any(role.id == int(self.config.manager_id) for role in interaction.user.roles)])
@@ -62,6 +68,7 @@ class UmbraClient(discord.Client):
             raise Exception("guild_id is a required parameter")
         self.load_elems_from_db('select id from voice_watch_list', 'id', self.config.voice_watch_list)
         self.load_elems_from_db('select id from here_allowed_channels', 'id', self.config.here_allowed_channels)
+        self.load_dict_from_db('select emoji_id,message from emoji_reacts', 'emoji_id', 'message', self.config.emoji_reacts)
         for extension in self.config.initial_extensions:
             mod = import_module(f"extensions.{extension}")
             if hasattr(mod, 'setup'):
@@ -82,7 +89,8 @@ class UmbraClient(discord.Client):
 
 intents = discord.Intents.default()
 intents.message_content = True
-exts = ['general', 'moderation', 'voice', 'settings']
+intents.reactions = True
+exts = ['general', 'moderation', 'voice', 'settings', 'reactions']
 client = UmbraClient(intents=intents, initial_extensions=exts, config=dotenv_values('.env'))
 
 @client.tree.error
@@ -100,6 +108,5 @@ if __name__ == "__main__":
 
 
 # TODO : reaction roles
-# TODO : react messages
 # TODO : groupes pour les salons temp
 # TODO : custom embed

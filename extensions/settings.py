@@ -4,9 +4,10 @@ if __name__ == "__main__":
     raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
 
 
-import discord
+import discord, re
 from dbOperations import dbOperations
-from typing import List
+from typing import List, Dict
+import emoji as em
 
 
 class Confirm(discord.ui.View):
@@ -25,6 +26,18 @@ class Confirm(discord.ui.View):
         self.value = False
         await interaction.response.send_message(':exclamation: Action refusée.', ephemeral=True)
         self.stop()
+
+
+class Dropdown_remove_emoji_reacts(discord.ui.Select):
+    def __init__(self, db, configList : Dict[str, str], list: List[discord.SelectOption]):
+        super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
+        self.db = db
+        self.configList = configList
+
+    async def callback(self, interaction: discord.Interaction):
+        dbOperations.query_db(self.db, 'delete from emoji_reacts where emoji_id = ?', [self.values[0]])
+        del self.configList[self.values[0]]
+        await interaction.response.send_message(":white_check_mark: Emoji retiré de la liste des réactions d'emojis", ephemeral=True)
 
 
 class Dropdown_remove_here_channel(discord.ui.Select):
@@ -185,7 +198,7 @@ async def setup(client):
                     for id in client.config.here_allowed_channels:
                         list.append(discord.SelectOption(label=interaction.guild.get_channel(id).name, value=id))
                     view = DropdownView(Dropdown_remove_here_channel(dbOperations.get_db(client.config), client.config.here_allowed_channels, list))
-                    await interaction.response.send_message('Choisissez salon à supprimer de la liste des salons here :', ephemeral=True, view=view)
+                    await interaction.response.send_message('Choisissez le salon à supprimer de la liste des salons here :', ephemeral=True, view=view)
             case "purge":
                 view = Confirm()
                 await interaction.response.send_message(':exclamation: Si vous continuez, tous les salons seront retirés de la liste des salons here. Continuer ?', ephemeral=True, view=view)
@@ -263,3 +276,53 @@ async def setup(client):
                     dbOperations.query_db(dbOperations.get_db(client.config), "delete from settings where skey = 'report_channel'")
                     del client.config.report_channel
                     await interaction.response.send_message(f":white_check_mark: Le salon de report à été désattribué", ephemeral=True)
+
+    @client.tree.command(description="Gérer les réactions d'emojis")
+    @discord.app_commands.check(client.check_user_has_rights)
+    @discord.app_commands.describe(emoji="Emoji requis si operation = add")
+    @discord.app_commands.describe(message="Message requis si operation = add")
+    @discord.app_commands.choices(operation=[
+        discord.app_commands.Choice(name="add", value="add"),
+        discord.app_commands.Choice(name="remove", value="remove"),
+        discord.app_commands.Choice(name="purge", value="purge"),
+        discord.app_commands.Choice(name="print", value="print")
+    ])
+    async def emoji_reactions(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], emoji: str = None, message: str = None):
+        match operation.value:
+            case "add":
+                if not emoji or not message:
+                    await interaction.response.send_message(':exclamation: Un emoji et un message sont requis', ephemeral=True)
+                elif re.compile(r"^<a?:\w+:\d+>$").match(emoji) or emoji in em.EMOJI_DATA:
+                    for emoji_id, msg in client.config.emoji_reacts:
+                        if emoji_id == emoji:
+                            await interaction.response.send_message(f":warning: {emoji} appartient déjà à la liste des réactions d'emojis", ephemeral=True)
+                            return
+                    dbOperations.query_db(dbOperations.get_db(client.config), 'insert into emoji_reacts (emoji_id,message) values ( ?, ? )', [emoji, message])
+                    client.config.emoji_reacts.update({emoji: message})
+                    await interaction.response.send_message(f":white_check_mark: {emoji} ajouté à la liste des réactions d'emojis", ephemeral=True)
+                else:
+                    await interaction.response.send_message(':exclamation: Emoji invalide', ephemeral=True)
+            case "remove":
+                if not client.config.emoji_reacts:
+                    await interaction.response.send_message(":warning: La liste des réactions d'emojis est vide", ephemeral=True)
+                else:
+                    list = []
+                    for emoji_id, text in client.config.emoji_reacts.items():
+                        list.append(discord.SelectOption(label=emoji_id, value=emoji_id))
+                    view = DropdownView(Dropdown_remove_emoji_reacts(dbOperations.get_db(client.config), client.config.emoji_reacts, list))
+                    await interaction.response.send_message("Choisissez l'emoji à supprimer de la liste des réactions d'emojis :", ephemeral=True, view=view)
+            case "purge":
+                view = Confirm()
+                await interaction.response.send_message(":exclamation: Si vous continuez, tous les emojis seront retirés de la liste des réactions d'emojis. Continuer ?", ephemeral=True, view=view)
+                await view.wait()
+                if view.value is not None and view.value:
+                    dbOperations.query_db(dbOperations.get_db(client.config), 'delete from emoji_reacts')
+                    client.config.emoji_reacts = {}
+            case "print":
+                if not client.config.emoji_reacts:
+                    await interaction.response.send_message(":warning: La liste des réactions d'emojis est vide", ephemeral=True)
+                else:
+                    msg = "Voici la liste des réactions d'emojis :\n"
+                    for emoji_id, text in client.config.emoji_reacts.items():
+                        msg += f"- {emoji_id} : {text}\n"
+                    await interaction.response.send_message(msg, ephemeral=True)
