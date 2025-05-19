@@ -2,7 +2,7 @@
 
 from random import choice
 import discord
-from db_operations import DbOperations
+from utils import DbOperations
 from extensions.settings import Confirm
 
 

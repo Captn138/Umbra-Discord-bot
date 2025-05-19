@@ -1,12 +1,26 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
-from typing import List, Union, Optional
+from typing import List, Dict, Union, Optional
 import mariadb
-from app import UmbraClientConfig
 
 
 if __name__ == "__main__":
     raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
+
+
+class UmbraClientConfig:
+    def __init__(self, initial_extensions: List[str], config: dict):
+        self.initial_extensions = initial_extensions
+        self.dbname = config.get("dbname", "umbra")
+        self.dbuser = config.get("dbuser", "root")
+        self.dbpass = config.get("dbpass", "")
+        self.dbhost = config.get("dbhost", "127.0.0.1")
+        self.dbport = int(config.get("dbport", "3306"))
+        self.token = config.get("token", None)
+        self.temp_voice_list: List[int] = []
+        self.voice_watch_list: List[int] = []
+        self.here_allowed_channels: List[int] = []
+        self.emoji_reacts: Dict[str, str] = {}
 
 
 class DbOperations:

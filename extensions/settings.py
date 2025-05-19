@@ -4,7 +4,7 @@ import re
 from typing import List, Dict, Optional
 import discord
 import emoji as em
-from db_operations import DbOperations
+from utils import DbOperations
 
 
 if __name__ == "__main__":

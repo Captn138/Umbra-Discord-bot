@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from db_operations import DbOperations
+from utils import DbOperations
 
 
 if __name__ == "__main__":
