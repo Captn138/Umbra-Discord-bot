@@ -24,13 +24,13 @@ jobs:
         curl https://pyenv.run | bash
         echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $GITHUB_ENV
         echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> $GITHUB_ENV
-        echo 'eval "$(pyenv init --path)"' >> $GITHUB_ENV
+        echo 'eval "$(pyenv init - bash)"' >> $GITHUB_ENV
         echo 'eval "$(pyenv virtualenv-init -)"' >> $GITHUB_ENV
     - name: Install Python ${{ matrix.python-version }}
       run: |
         export PYENV_ROOT="$HOME/.pyenv"
         export PATH="$PYENV_ROOT/bin:$PATH"
-        eval "$(pyenv init --path)"
+        eval "$(pyenv init - bash)"
         eval "$(pyenv virtualenv-init -)"
         pyenv install -s ${{ matrix.python-version }}
         pyenv local ${{ matrix.python-version }}
@@ -41,7 +41,7 @@ jobs:
       run: |
         export PYENV_ROOT="$HOME/.pyenv"
         export PATH="$PYENV_ROOT/bin:$PATH"
-        eval "$(pyenv init --path)"
+        eval "$(pyenv init - bash)"
         eval "$(pyenv virtualenv-init -)"
         pyenv local ${{ matrix.python-version }}
         pylint . --recursive=y -j0 --max-line-length=127 --load-plugins=pylint.extensions.mccabe --max-complexity=50 --reports=y --disable=C0114,C0115,C0116,C0301,E0213,E1101,R0902,R0903,R0912,R0914,R0915
