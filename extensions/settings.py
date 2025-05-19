@@ -29,7 +29,7 @@ class Confirm(discord.ui.View):
 
 
 class Dropdown_remove_emoji_reacts(discord.ui.Select):
-    def __init__(self, db, configList : Dict[str, str], list: List[discord.SelectOption]):
+    def __init__(self, db, configList: Dict[str, str], list: List[discord.SelectOption]):
         super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
         self.db = db
         self.configList = configList
@@ -41,7 +41,7 @@ class Dropdown_remove_emoji_reacts(discord.ui.Select):
 
 
 class Dropdown_remove_here_channel(discord.ui.Select):
-    def __init__(self, db, configList : List[int], list: List[discord.SelectOption]):
+    def __init__(self, db, configList: List[int], list: List[discord.SelectOption]):
         super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
         self.db = db
         self.configList = configList
@@ -63,7 +63,7 @@ class Dropdown_remove_temp_name(discord.ui.Select):
 
 
 class Dropdown_remove_watched_channel(discord.ui.Select):
-    def __init__(self, db, configList : List[int], list: List[discord.SelectOption]):
+    def __init__(self, db, configList: List[int], list: List[discord.SelectOption]):
         super().__init__(placeholder='Choisissez une valeur ...', min_values=1, max_values=1, options=list)
         self.db = db
         self.configList = configList
@@ -77,7 +77,7 @@ class Dropdown_remove_watched_channel(discord.ui.Select):
 class DropdownView(discord.ui.View):
     def __init__(self, dropdown: discord.ui.Select):
         super().__init__()
-        self.add_item(dropdown) 
+        self.add_item(dropdown)
 
 
 async def setup(client):
@@ -102,7 +102,6 @@ async def setup(client):
                     client.config.voice_watch_list.append(channel.id)
                     await interaction.response.send_message(f":white_check_mark: `{channel.name}` ajouté à la liste de création de salons", ephemeral=True)
             case "remove":
-                query = dbOperations.query_db(dbOperations.get_db(client.config), 'select id from voice_watch_list')
                 if not client.config.voice_watch_list:
                     await interaction.response.send_message(':warning: La liste de création de salons est vide', ephemeral=True)
                 else:

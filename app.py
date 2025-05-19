@@ -93,6 +93,7 @@ intents.reactions = True
 exts = ['general', 'moderation', 'voice', 'settings', 'reactions']
 client = UmbraClient(intents=intents, initial_extensions=exts, config=dotenv_values('.env'))
 
+
 @client.tree.error
 async def on_tree_error(interaction, error):
     if isinstance(error, discord.app_commands.CheckFailure):

@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
 
 import discord
-from typing import Union, List
+from typing import List
 from dbOperations import dbOperations
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -37,11 +37,11 @@ class UserReport(discord.ui.Modal, title='Signalement'):
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message(':exclamation: Oups! Quelque chose a mal tourné.', ephemeral=True)
-        traceback.print_exception(type(error), error, error.__traceback__)
 
 
 async def on_ready(self):
     self.scheduler.start()
+
 
 async def setup(client):
     async def daily_unban():

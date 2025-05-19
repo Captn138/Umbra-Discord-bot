@@ -54,7 +54,7 @@ async def setup(client):
         if interaction.channel_id in client.config.here_allowed_channels:
             try:
                 voice_status = await interaction.user.fetch_voice()
-            except:
+            except Exception:
                 voice_status = None
             if not voice_status or not voice_status.channel:
                 await interaction.response.send_message(f"@here\nDe {interaction.user.mention} : {message}", allowed_mentions=discord.AllowedMentions(everyone=True))

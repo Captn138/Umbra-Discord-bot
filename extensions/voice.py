@@ -19,6 +19,7 @@ def get_new_voice_channel_name(db):
         list.append(elem['name'])
     return choice(list)
 
+
 async def setup(client):
     @client.event
     async def on_voice_state_update(member, before, after):

@@ -28,7 +28,7 @@ class dbOperations:
             cur.execute(query, args)
             try:
                 rv = cur.fetchall()
-            except:
+            except Exception:
                 rv = None
             cur.close()
             return (rv[0] if rv else None) if one else rv
