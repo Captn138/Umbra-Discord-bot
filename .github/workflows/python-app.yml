@@ -26,14 +26,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install pylint pytest
         pip install -r requirements.txt
     - name: Check for errors
-      run: |
-        flake8 . --count --show-source --statistics --select=E9,E203,E302,E722,F7,F63,F82,F401,F841,W291,W292
-    - name: Check for any other flake errors
-      run: |
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      run: pylint . --recursive=y -j0 --exit-zero --max-line-length=127 --load-plugins=pylint.extensions.mccabe --max-complexity=50 --reports=y --disable=C0114,C0115,C0116,C0301,E0213,E1101,R0902,R0903,R0912,R0914,R0915
+    - name: Check for missing documentation
+      run: pylint . --recursive=y -j0 --exit-zero --max-line-length=127 --load-plugins=pylint.extensions.mccabe --max-complexity=50 --reports=y --disable=all --enable=C0114,C0115,C0116
     - name: Test with pytest
-      run: |
-        pytest
+      run: pytest

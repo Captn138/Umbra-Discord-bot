@@ -1,15 +1,15 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
+import discord
+
+
 if __name__ == "__main__":
     raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
 
 
-import discord
-
-
 async def setup(client):
     def build_string(string: str, message: discord.Message):
-        string = string.replace('%USER%', message.author.mention)
+        string = string.replace("%USER%", message.author.mention)
         return string
 
     @client.event
