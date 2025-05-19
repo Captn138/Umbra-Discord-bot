@@ -1,7 +1,8 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
-from typing import List, Dict
+from typing import List, Union, Optional
 import mariadb
+from app import UmbraClientConfig
 
 
 if __name__ == "__main__":
@@ -9,7 +10,7 @@ if __name__ == "__main__":
 
 
 class DbOperations:
-    def get_db(config: Dict[str, str]):
+    def get_db(config: UmbraClientConfig):
         if not hasattr(config, "db") or config.db is None:  # pylint: disable=E0203
             config.db = mariadb.connect(    # pylint: disable=W0201
                         user = config.dbuser,
@@ -22,7 +23,7 @@ class DbOperations:
         config.db.autocommit = True
         return config.db
 
-    def query_db(db: mariadb.connections.Connection, query: str, args: List = None, one = False):
+    def query_db(db: mariadb.connections.Connection, query: str, args: Optional[List[Union[str, int]]] = None, one = False):
         cur = db.cursor(dictionary=True)
         cur.execute(query, args)
         try:

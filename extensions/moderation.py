@@ -1,6 +1,6 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -248,7 +248,7 @@ async def setup(client):
 
     @client.tree.command(description="Bannir un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
-    async def ban(interaction: discord.Interaction, user: discord.Member, reason: str, days: int = None):
+    async def ban(interaction: discord.Interaction, user: discord.Member, reason: str, days: Optional[int] = None):
         embed = discord.Embed(colour=discord.Colour.dark_red(), title="Bannissement")
         embed.description = f":hammer: Vous avez été banni du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         if days is not None:

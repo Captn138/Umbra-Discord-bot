@@ -1,7 +1,7 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
 import re
-from typing import List, Dict
+from typing import List, Dict, Optional
 import discord
 import emoji as em
 from db_operations import DbOperations
@@ -91,7 +91,7 @@ async def setup(client):
         discord.app_commands.Choice(name="purge", value="purge"),
         discord.app_commands.Choice(name="print", value="print")
     ])
-    async def watched_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel = None):
+    async def watched_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: Optional[discord.VoiceChannel] = None):
         match operation.value:
             case "add":
                 if not channel:
@@ -136,7 +136,7 @@ async def setup(client):
         discord.app_commands.Choice(name="purge", value="purge"),
         discord.app_commands.Choice(name="print", value="print")
     ])
-    async def temp_name(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], name: str = None):
+    async def temp_name(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], name: Optional[str] = None):
         match operation.value:
             case "add":
                 if not name:
@@ -179,7 +179,7 @@ async def setup(client):
         discord.app_commands.Choice(name="purge", value="purge"),
         discord.app_commands.Choice(name="print", value="print")
     ])
-    async def here_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
+    async def here_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: Optional[discord.TextChannel] = None):
         match operation.value:
             case "add":
                 if not channel:
@@ -223,7 +223,7 @@ async def setup(client):
         discord.app_commands.Choice(name="set", value="set"),
         discord.app_commands.Choice(name="unset", value="unset")
     ])
-    async def manager(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], role: discord.Role = None):
+    async def manager(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], role: Optional[discord.Role] = None):
         match operation.value:
             case "get":
                 if not hasattr(client.config, "manager_id"):
@@ -254,7 +254,7 @@ async def setup(client):
         discord.app_commands.Choice(name="set", value="set"),
         discord.app_commands.Choice(name="unset", value="unset")
     ])
-    async def report_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.TextChannel = None):
+    async def report_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: Optional[discord.TextChannel] = None):
         match operation.value:
             case "get":
                 if not hasattr(client.config, "report_channel"):
@@ -287,7 +287,7 @@ async def setup(client):
         discord.app_commands.Choice(name="purge", value="purge"),
         discord.app_commands.Choice(name="print", value="print")
     ])
-    async def emoji_reactions(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], emoji: str = None, message: str = None):
+    async def emoji_reactions(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], emoji: Optional[str] = None, message: Optional[str] = None):
         match operation.value:
             case "add":
                 if not emoji or not message:

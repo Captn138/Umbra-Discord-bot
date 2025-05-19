@@ -1,6 +1,7 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
 import traceback
+from typing import Optional
 import discord
 
 
@@ -62,7 +63,7 @@ async def setup(client):
 
     @client.tree.command(name="help", description="Affiche l'aide pour une commande")
     @discord.app_commands.describe(command="Commande à propos de laquelle afficher l'aide")
-    async def help_command(interaction: discord.Interaction, command: str = None):
+    async def help_command(interaction: discord.Interaction, command: Optional[str] = None):
         chat_commands = client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.chat_input)
         if command:
             embed = discord.Embed(colour=discord.Colour.blurple(), title="Aide commande")

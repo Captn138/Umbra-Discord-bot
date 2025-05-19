@@ -32,10 +32,10 @@ class UmbraClientConfig:
         self.dbhost = config.get("dbhost", "127.0.0.1")
         self.dbport = int(config.get("dbport", "3306"))
         self.token = config.get("token", None)
-        self.temp_voice_list = []
-        self.voice_watch_list = []
-        self.here_allowed_channels = []
-        self.emoji_reacts = {}
+        self.temp_voice_list: List[int] = []
+        self.voice_watch_list: List[int] = []
+        self.here_allowed_channels: List[int] = []
+        self.emoji_reacts: Dict[str, str] = {}
 
 
 class UmbraClient(discord.Client):
@@ -54,7 +54,7 @@ class UmbraClient(discord.Client):
         for elem in query:
             target_list.append(int(elem[elem_name]))
 
-    def load_dict_from_db(self, query: str, key: str, value: str, target_dict: Dict[int, str]):
+    def load_dict_from_db(self, query: str, key: str, value: str, target_dict: Dict[str, str]):
         query = DbOperations.query_db(DbOperations.get_db(self.config), query)
         for elem in query:
             target_dict.update({str(elem[key]): elem[value]})
