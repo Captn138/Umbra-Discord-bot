@@ -1,23 +1,24 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
+from random import choice
+import discord
+from utils import DbOperations
+from extensions.settings import Confirm
+
+
 if __name__ == "__main__":
     raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
 
 
-import discord
-from random import choice
-from dbOperations import dbOperations
-from extensions.settings import Confirm
-
-
 def get_new_voice_channel_name(db):
-    query = dbOperations.query_db(db, 'select name from voice_channel_names')
+    query = DbOperations.query_db(db, "select name from voice_channel_names")
     if not query:
         return "liste vide - contactez la modération"
-    list = []
+    names_list = []
     for elem in query:
-        list.append(elem['name'])
-    return choice(list)
+        names_list.append(elem["name"])
+    return choice(names_list)
+
 
 async def setup(client):
     @client.event
@@ -25,7 +26,7 @@ async def setup(client):
         if after.channel and after.channel.id in client.config.voice_watch_list:
             guild = after.channel.guild
             new_channel = await guild.create_voice_channel(
-                name=get_new_voice_channel_name(dbOperations.get_db(client.config)),
+                name=get_new_voice_channel_name(DbOperations.get_db(client.config)),
                 overwrites=after.channel.overwrites,
                 category=after.channel.category
             )
