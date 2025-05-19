@@ -105,8 +105,3 @@ async def on_tree_error(interaction, error):
 
 if __name__ == "__main__":
     client.run(client.config.token)
-
-
-# TODO : reaction roles
-# TODO : groupes pour les salons temp
-# TODO : custom embed
