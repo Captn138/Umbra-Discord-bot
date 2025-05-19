@@ -2,7 +2,4 @@
 __pycache__/
 *.log
 .env
-venv/
-*.sqlite
-*.sqlite-journal
 *.tar.gz
