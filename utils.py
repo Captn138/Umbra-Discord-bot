@@ -24,6 +24,7 @@ class UmbraClientConfig:
 
 
 class DbOperations:
+    @staticmethod
     def get_db(config: UmbraClientConfig):
         if not hasattr(config, "db") or config.db is None:  # pylint: disable=E0203
             config.db = mariadb.connect(    # pylint: disable=W0201
@@ -37,6 +38,7 @@ class DbOperations:
         config.db.autocommit = True
         return config.db
 
+    @staticmethod
     def query_db(db: mariadb.connections.Connection, query: str, args: Optional[List[Union[str, int]]] = None, one = False):
         cur = db.cursor(dictionary=True)
         cur.execute(query, args)
