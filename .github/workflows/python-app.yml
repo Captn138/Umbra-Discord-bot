@@ -43,3 +43,7 @@ jobs:
         . ~/.pyenvrc
         pyenv activate umbra-${{ matrix.python-version }}
         pylint . --recursive=y -j0 --exit-zero --max-line-length=127 --load-plugins=pylint.extensions.mccabe --max-complexity=50 --reports=y --disable=all --enable=C0114,C0115,C0116
+    - name: Clean
+      run: |
+        . ~/.pyenvrc
+        pyenv virtualenv-delete umbra-${{ matrix.python-version }}
