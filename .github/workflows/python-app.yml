@@ -6,15 +6,17 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  release:
+    types: ["published"]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
-    runs-on: self-hoste
+    runs-on: self-hosted
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
@@ -22,10 +24,12 @@ jobs:
       uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       run: |
+        . ~/.pyenvrc
         pyenv install -s ${{ matrix.python-version }}
         [[ -d $PYENV_ROOT/versions/umbra-${{ matrix.python-version }} ]] || pyenv virtualenv ${{ matrix.python-version }} umbra-${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        . ~/.pyenvrc
         pyenv activate umbra-${{ matrix.python-version }}
         python -m pip install --upgrade pip
         pip install pylint
@@ -33,9 +37,15 @@ jobs:
         pip install pylint
     - name: Check for errors
       run: |
+        . ~/.pyenvrc
         pyenv activate umbra-${{ matrix.python-version }}
         pylint . --recursive=y -j0 --exit-zero --max-line-length=127 --load-plugins=pylint.extensions.mccabe --max-complexity=50 --reports=y --disable=C0114,C0115,C0116,C0301,E0213,E1101,R0902,R0903,R0912,R0914,R0915
     - name: Check for missing documentation
       run: |
+        . ~/.pyenvrc
         pyenv activate umbra-${{ matrix.python-version }}
         pylint . --recursive=y -j0 --exit-zero --max-line-length=127 --load-plugins=pylint.extensions.mccabe --max-complexity=50 --reports=y --disable=all --enable=C0114,C0115,C0116
+    - name: Clean virtualenvs
+      run: |
+        . ~/.pyenvrc
+        pyenv virtualenv-delete -f umbra-${{ matrix.python-version }}

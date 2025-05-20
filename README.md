@@ -1,5 +1,8 @@
 # Umbra-Discord-bot
 
+Release code quality : [![Release code quality](https://github.com/Captn138/Umbra-Discord-bot/actions/workflows/python-app.yml/badge.svg?branch=main&event=release)](https://github.com/Captn138/Umbra-Discord-bot/actions/workflows/python-app.yml) | 
+Latest run : [![Latest run](https://github.com/Captn138/Umbra-Discord-bot/actions/workflows/python-app.yml/badge.svg)](https://github.com/Captn138/Umbra-Discord-bot/actions/workflows/python-app.yml)
+
 ## License
 This project is licensed under the [GNU AGPL v3](LICENSE).
 - All modifications of this code must be published under the same license, even for SaaS use cases
