@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
 
-    runs-on: self-hoste
+    runs-on: self-hosted
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
