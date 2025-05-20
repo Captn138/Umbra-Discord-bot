@@ -46,4 +46,4 @@ jobs:
     - name: Clean virtualenvs
       run: |
         . ~/.pyenvrc
-        pyenv virtualenv-delete umbra-${{ matrix.python-version }}
+        pyenv virtualenv-delete -f umbra-${{ matrix.python-version }}
