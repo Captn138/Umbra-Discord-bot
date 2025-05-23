@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 import traceback
 from typing import List, Dict
+from datetime import datetime
 from importlib import import_module
 import discord
 from dotenv import dotenv_values
@@ -66,6 +67,7 @@ class UmbraClient(discord.Client):
         await self.tree.sync(guild=umbra_guild)
 
     async def on_ready(self):
+        self.config.launch_time = int(datetime.now().timestamp())
         del self.config.token
         logger.info("%s (id: %s) logged in !", client.user.name, client.user.id)
         for extension in self.config.initial_extensions:

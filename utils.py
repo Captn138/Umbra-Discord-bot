@@ -11,12 +11,15 @@ if __name__ == "__main__":
 class UmbraClientConfig:
     def __init__(self, initial_extensions: List[str], config: dict):
         self.initial_extensions = initial_extensions
+        self.version = "v1.4"
+        self.source = "https://github.com/Captn138/Umbra-Discord-bot"
         self.dbname = config.get("dbname", "umbra")
         self.dbuser = config.get("dbuser", "root")
         self.dbpass = config.get("dbpass", "")
         self.dbhost = config.get("dbhost", "127.0.0.1")
         self.dbport = int(config.get("dbport", "3306"))
         self.token = config.get("token", None)
+        self.launch_time: int = None
         self.temp_voice_list: List[int] = []
         self.voice_watch_list: List[int] = []
         self.here_allowed_channels: List[int] = []
