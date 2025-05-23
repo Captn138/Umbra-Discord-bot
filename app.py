@@ -74,6 +74,9 @@ class UmbraClient(discord.Client):
             mod = import_module(f"extensions.{extension}")
             if hasattr(mod, "on_ready") and callable(getattr(mod, "on_ready")):
                 await mod.on_ready(self)
+        if self.config.game:
+            game = discord.Game(self.config.game)
+            await self.change_presence(activity=game)
 
 
 custom_intents = discord.Intents.default()
