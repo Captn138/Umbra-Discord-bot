@@ -89,8 +89,19 @@ async def on_tree_error(interaction, error):
         await interaction.response.send_message(":exclamation: Tu n'as pas la permission d'utiliser cette commande.", ephemeral=True)
     else:
         await interaction.response.send_message(":exclamation: Une erreur est survenue.", ephemeral=True)
+        await client.change_presence(status=discord.Status.idle)
         logger.error("[on_app_command_error] %s: %s", type(error).__name__, error)
         traceback.print_exc()
+
+@client.event
+async def on_error(event, *args, **kwargs):
+    await client.change_presence(status=discord.Status.dnd)
+    logger.error("[on_error] %s: %s", event, traceback.print_exc())
+
+@client.event
+async def on_interaction(interaction):
+    if client.config.debug is True and hasattr(interaction.command, "name"):
+        logger.info("DEBUG: User %s (%s) used interaction %s", interaction.user.name, interaction.user.id, interaction.command.name)
 
 
 if __name__ == "__main__":
