@@ -97,7 +97,7 @@ async def on_tree_error(interaction, error):
         traceback.print_exc()
 
 @client.event
-async def on_error(event, *args, **kwargs):
+async def on_error(event, *args, **kwargs): # pylint: disable=W0613
     await client.change_presence(status=discord.Status.dnd)
     logger.error("[on_error] %s: %s", event, traceback.print_exc())
 

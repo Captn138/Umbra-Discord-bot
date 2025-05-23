@@ -13,7 +13,7 @@ class UmbraClientConfig:
         self.initial_extensions = initial_extensions
         self.version = "v1.4"
         self.source = "https://github.com/Captn138/Umbra-Discord-bot"
-        self.debug = True if config.get("debug", "false") == "true" else False
+        self.debug = config.get("debug", "false") == "true"
         self.game = config.get("game", None)
         self.dbname = config.get("dbname", "umbra")
         self.dbuser = config.get("dbuser", "root")
