@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 import traceback
 from typing import List, Dict
+from datetime import datetime
 from importlib import import_module
 import discord
 from dotenv import dotenv_values
@@ -66,12 +67,16 @@ class UmbraClient(discord.Client):
         await self.tree.sync(guild=umbra_guild)
 
     async def on_ready(self):
+        self.config.launch_time = int(datetime.now().timestamp())
         del self.config.token
         logger.info("%s (id: %s) logged in !", client.user.name, client.user.id)
         for extension in self.config.initial_extensions:
             mod = import_module(f"extensions.{extension}")
             if hasattr(mod, "on_ready") and callable(getattr(mod, "on_ready")):
                 await mod.on_ready(self)
+        if self.config.game:
+            game = discord.Game(self.config.game)
+            await self.change_presence(activity=game)
 
 
 custom_intents = discord.Intents.default()
@@ -87,8 +92,19 @@ async def on_tree_error(interaction, error):
         await interaction.response.send_message(":exclamation: Tu n'as pas la permission d'utiliser cette commande.", ephemeral=True)
     else:
         await interaction.response.send_message(":exclamation: Une erreur est survenue.", ephemeral=True)
+        await client.change_presence(status=discord.Status.idle)
         logger.error("[on_app_command_error] %s: %s", type(error).__name__, error)
         traceback.print_exc()
+
+@client.event
+async def on_error(event, *args, **kwargs): # pylint: disable=W0613
+    await client.change_presence(status=discord.Status.dnd)
+    logger.error("[on_error] %s: %s", event, traceback.print_exc())
+
+@client.event
+async def on_interaction(interaction):
+    if client.config.debug is True and hasattr(interaction.command, "name"):
+        logger.info("DEBUG: User %s (%s) used interaction %s", interaction.user.name, interaction.user.id, interaction.command.name)
 
 
 if __name__ == "__main__":

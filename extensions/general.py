@@ -2,6 +2,7 @@
 
 import traceback
 from typing import Optional
+from datetime import datetime
 import discord
 
 
@@ -105,3 +106,13 @@ async def setup(client):
             for cmd in chat_commands
             if current.lower() in cmd.name.lower() and (not cmd.checks or client.check_user_has_rights(interaction))
         ]
+
+    @client.tree.command(description="Affiche les infos du bot")
+    async def botinfo(interaction: discord.Interaction):
+        embed = discord.Embed(colour=discord.Colour.blurple(), title=f"Infos {client.user.name}")
+        embed.add_field(name="En ligne depuis", value=discord.utils.format_dt(datetime.fromtimestamp(client.config.launch_time)), inline=False)
+        application_info = await client.application_info()
+        embed.add_field(name="Propriétaire", value=application_info.owner.mention, inline=False)
+        embed.add_field(name="Version", value=client.config.version, inline=False)
+        embed.add_field(name="Code source", value=client.config.source, inline=False)
+        await interaction.response.send_message(embed=embed, ephemeral=True)

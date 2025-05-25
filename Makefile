@@ -1,8 +1,8 @@
 # This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
 
- ifeq (, $(shell which pyenv))
- $(error "No pyenv in $(PATH), consider doing curl https://pyenv.run | bash")
- endif
+ifeq (, $(shell which pyenv))
+$(error "No pyenv in $(PATH), consider doing curl https://pyenv.run | bash")
+endif
 
 VENV_NAME := umbra
 VENV_DIR=$(shell pyenv root)/versions/${VENV_NAME}
