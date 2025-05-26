@@ -31,10 +31,9 @@ jobs:
       run: |
         . ~/.pyenvrc
         pyenv activate umbra-${{ matrix.python-version }}
-        python -m pip install --upgrade pip
-        pip install pylint
-        pip install -r requirements.txt
-        pip install pylint
+        pip install -qqU pip
+        pip install -qq pylint
+        pip install -qqr requirements.txt
     - name: Check for errors
       run: |
         . ~/.pyenvrc

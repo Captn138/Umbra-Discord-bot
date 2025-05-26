@@ -1,4 +1,11 @@
-# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+"""
+extensions/settings.py (Umbra-Discord-Bot)
+:license: AGPL-3.0,see LICENSE for details
+
+This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later.
+
+Settings getters/setters for the Discord application. 
+"""
 
 import re
 from typing import List, Dict, Optional
@@ -12,24 +19,53 @@ if __name__ == "__main__":
 
 
 class Confirm(discord.ui.View):
+    """
+    Custom class to ask for confirmation, inherits discord.ui.View.
+    
+    Attributes
+    ----------
+    value : bool
+        The value of the confirmation
+    """
     def __init__(self):
         super().__init__()
         self.value = None
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):   # pylint: disable=W0613
+        """Confirm action"""
         self.value = True
         await interaction.response.send_message(":white_check_mark: Action confirmée.", ephemeral=True)
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):    # pylint: disable=W0613
+        """Cancel action"""
         self.value = False
         await interaction.response.send_message(":exclamation: Action refusée.", ephemeral=True)
         self.stop()
 
 
 class DropdownRemoveEmojiReacts(discord.ui.Select):
+    """
+    Custom class to remove an emoji reaction, inherits discord.ui.Select.
+    
+    Attributes
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    config_list : Dict[str, str]
+        The dictionary containing all the emoji reactions
+    
+    Parameters
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    config_list : Dict[str, str]
+        The dictionary containing all the emoji reactions
+    choices_list : List[discord.SelectOption]
+        The list of choices
+    """
     def __init__(self, db, config_list: Dict[str, str], choices_list: List[discord.SelectOption]):
         super().__init__(placeholder="Choisissez une valeur ...", min_values=1, max_values=1, options=choices_list)
         self.db = db
@@ -42,6 +78,25 @@ class DropdownRemoveEmojiReacts(discord.ui.Select):
 
 
 class DropdownRemoveHereChannel(discord.ui.Select):
+    """
+    Custom class to remove a here channel, inherits discord.ui.Select.
+    
+    Attributes
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    config_list : List[int]
+        The list containing all the here channels IDs
+    
+    Parameters
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    config_list : List[int]
+        The list containing all the here channels IDs
+    choices_list : List[discord.SelectOption]
+        The list of choices
+    """
     def __init__(self, db, config_list: List[int], choices_list: List[discord.SelectOption]):
         super().__init__(placeholder="Choisissez une valeur ...", min_values=1, max_values=1, options=choices_list)
         self.db = db
@@ -54,6 +109,21 @@ class DropdownRemoveHereChannel(discord.ui.Select):
 
 
 class DropdownRemoveTempName(discord.ui.Select):
+    """
+    Custom class to remove a temporaty voice channel name, inherits discord.ui.Select.
+    
+    Attributes
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    
+    Parameters
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    choices_list : List[discord.SelectOption]
+        The list of choices
+    """
     def __init__(self, db, choices_list: List[discord.SelectOption]):
         super().__init__(placeholder="Choisissez une valeur ...", min_values=1, max_values=1, options=choices_list)
         self.db = db
@@ -64,6 +134,25 @@ class DropdownRemoveTempName(discord.ui.Select):
 
 
 class DropdownRemoveWatchedChannel(discord.ui.Select):
+    """
+    Custom class to remove a here channel, inherits discord.ui.Select.
+    
+    Attributes
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    config_list : List[int]
+        The list containing all the watched channels IDs
+    
+    Parameters
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    config_list : List[int]
+        The list containing all the watched channels IDs
+    choices_list : List[discord.SelectOption]
+        The list of choices
+    """
     def __init__(self, db, config_list: List[int], choices_list: List[discord.SelectOption]):
         super().__init__(placeholder="Choisissez une valeur ...", min_values=1, max_values=1, options=choices_list)
         self.db = db
@@ -76,12 +165,23 @@ class DropdownRemoveWatchedChannel(discord.ui.Select):
 
 
 class DropdownView(discord.ui.View):
+    """
+    Custom dropdown class, inherits discord.ui.View.
+    
+    Parameters
+    ----------
+    dropdown : discord.ui.Select
+        The custom dropdown selection
+    """
     def __init__(self, dropdown: discord.ui.Select):
         super().__init__()
         self.add_item(dropdown)
 
 
 async def setup(client):
+    """
+    Function run when module loaded as an extension.
+    """
     @client.tree.command(description="Gérer les salons de la liste de création de salons")
     @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.describe(channel="Salon vocal requis si operation = add")
@@ -92,6 +192,17 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def watched_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: Optional[discord.VoiceChannel] = None):
+        """
+        Manages the watched channels.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        operation : discord.app_commands.Choice[str]
+            The operation to perform among add, remove, print, purge
+        channel : Optional[discord.VoiceChannel]
+            The optional voice channel, only needed for add operation
+        """
         match operation.value:
             case "add":
                 if not channel:
@@ -137,6 +248,17 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def temp_name(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], name: Optional[str] = None):
+        """
+        Manages the temporary voice channels names.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        operation : discord.app_commands.Choice[str]
+            The operation to perform among add, remove, print, purge
+        name : Optional[str]
+            The optional temporary voice channel name, only needed for add operation
+        """
         match operation.value:
             case "add":
                 if not name:
@@ -180,6 +302,17 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def here_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: Optional[discord.TextChannel] = None):
+        """
+        Manages the here channels.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        operation : discord.app_commands.Choice[str]
+            The operation to perform among add, remove, print, purge
+        channel : Optional[discord.TextChannel]
+            The optional text channel, only needed for add operation
+        """
         match operation.value:
             case "add":
                 if not channel:
@@ -224,6 +357,17 @@ async def setup(client):
         discord.app_commands.Choice(name="unset", value="unset")
     ])
     async def manager(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], role: Optional[discord.Role] = None):
+        """
+        Manages the manager role.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        operation : discord.app_commands.Choice[str]
+            The operation to perform among get, set, unset
+        role : Optional[discord.Role]
+            The optional manager role, only needed for set operation
+        """
         match operation.value:
             case "get":
                 if not hasattr(client.config, "manager_id"):
@@ -255,6 +399,17 @@ async def setup(client):
         discord.app_commands.Choice(name="unset", value="unset")
     ])
     async def report_channel(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: Optional[discord.TextChannel] = None):
+        """
+        Manages the report channel.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        operation : discord.app_commands.Choice[str]
+            The operation to perform among get, set, unset
+        channel : Optional[discord.TextChannel]
+            The optional text channel, only needed for set operation
+        """
         match operation.value:
             case "get":
                 if not hasattr(client.config, "report_channel"):
@@ -288,6 +443,19 @@ async def setup(client):
         discord.app_commands.Choice(name="print", value="print")
     ])
     async def emoji_reactions(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], emoji: Optional[str] = None, message: Optional[str] = None):
+        """
+        Manages the emoji reactions.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        operation : discord.app_commands.Choice[str]
+            The operation to perform among add, remove, print, purge
+        emoji : Optional[str]
+            The emoji to trigger a message, only needed for add operation
+        message : Optional[str]
+            The message triggered by the emoji, only needed for add operation
+        """
         match operation.value:
             case "add":
                 if not emoji or not message:
