@@ -1,4 +1,12 @@
-# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+"""
+extensions/general.py (Umbra-Discord-Bot)
+:license: AGPL-3.0,see LICENSE for details
+
+This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later.
+
+General commands for the Discord application.
+Can be used by everyone. 
+"""
 
 import traceback
 from typing import Optional
@@ -11,6 +19,23 @@ if __name__ == "__main__":
 
 
 class Feedback(discord.ui.Modal, title="Feedback"):
+    """
+    Custom class to store and send a feedback, inherits discord.ui.Modal.
+    
+    Attributes
+    ----------
+    report_channel : int
+        The channel in which to send the feedback, once completed
+    name : discord.ui.TextInput
+        The chosen name for the author of the feedback
+    feedback : discord.ui.TextInput
+        The feedback text
+    
+    Parameters
+    ----------
+    report_channel : int
+        The channel in which to send the feedback, once completed
+    """
     def __init__(self, report_channel: int):
         super().__init__()
         self.report_channel = report_channel
@@ -42,16 +67,34 @@ class Feedback(discord.ui.Modal, title="Feedback"):
 
 
 async def setup(client):
+    """
+    Function run when module loaded as an extension.
+    """
     @client.tree.command(description="Bonjour !")
     async def hello(interaction: discord.Interaction):
+        """
+        Simple commands that answers the user.
+        """
         await interaction.response.send_message(f"Salut, {interaction.user.mention} !", ephemeral=True)
 
     @client.tree.command(description="Envoyer un feedback")
     async def feedback(interaction: discord.Interaction):
+        """
+        Command to send a feedback.
+        """
         await interaction.response.send_modal(Feedback(int(client.config.report_channel)))
 
     @client.tree.command(description="Mentionner here avec un message personnalisé")
     async def here(interaction: discord.Interaction, message: str):
+        """
+        Command to send @here in a channel.
+        Will also send a mention of the author, their voice channel if available and a custom message.
+        
+        Parameters
+        ----------
+        message : str
+            The custom message to send
+        """
         if interaction.channel_id in client.config.here_allowed_channels:
             try:
                 voice_status = await interaction.user.fetch_voice()
@@ -65,6 +108,15 @@ async def setup(client):
     @client.tree.command(name="help", description="Affiche l'aide pour une commande")
     @discord.app_commands.describe(command="Commande à propos de laquelle afficher l'aide")
     async def help_command(interaction: discord.Interaction, command: Optional[str] = None):
+        """
+        Command to list description of all possible interactions with the application.
+        Dynamically shows commands based on the user rights.
+        
+        Parameters
+        ----------
+        command : Optional[str]
+            optional name of the interaction to get more details about
+        """
         chat_commands = client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.chat_input)
         if command:
             embed = discord.Embed(colour=discord.Colour.blurple(), title="Aide commande")
@@ -100,6 +152,9 @@ async def setup(client):
 
     @help_command.autocomplete("command")
     async def help_autocomplete(interaction: discord.Interaction, current: str):
+        """
+        Auto completer for the help command.
+        """
         chat_commands = client.tree.get_commands(guild=interaction.guild, type=discord.AppCommandType.chat_input)
         return [
             discord.app_commands.Choice(name=cmd.name, value=cmd.name)
@@ -109,6 +164,9 @@ async def setup(client):
 
     @client.tree.command(description="Affiche les infos du bot")
     async def botinfo(interaction: discord.Interaction):
+        """
+        Command to get some publicly available information about the application.
+        """
         embed = discord.Embed(colour=discord.Colour.blurple(), title=f"Infos {client.user.name}")
         embed.add_field(name="En ligne depuis", value=discord.utils.format_dt(datetime.fromtimestamp(client.config.launch_time)), inline=False)
         application_info = await client.application_info()

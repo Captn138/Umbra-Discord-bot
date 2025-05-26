@@ -1,4 +1,11 @@
-# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+"""
+extensions/moderation.py (Umbra-Discord-Bot)
+:license: AGPL-3.0,see LICENSE for details
+
+This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later.
+
+Moderation commands and functions for the Discord application. 
+"""
 
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -13,6 +20,29 @@ if __name__ == "__main__":
 
 
 class UserReport(discord.ui.Modal, title="Signalement"):
+    """
+    Custom class to store and send a user report, inherits discord.ui.Modal.
+    
+    Attributes
+    ----------
+    report_channel : int
+        The channel in which to send the feedback, once completed
+    user : discord.Member
+        The reporting user
+    target : discord.Member
+        The reported user
+    reason : discord.ui.TextInput
+        The reason of the report
+    
+    Parameters
+    ----------
+    report_channel : int
+        The channel in which to send the feedback, once completed
+    user : discord.Member
+        The reporting user
+    target : discord.Member
+        The reported user
+    """
     def __init__(self, report_channel: int, user: discord.Member, target: discord.Member):
         super().__init__()
         self.report_channel = report_channel
@@ -40,11 +70,21 @@ class UserReport(discord.ui.Modal, title="Signalement"):
 
 
 async def on_ready(self):
+    """
+    Function run when the module has been loaded by the application.
+    """
     self.scheduler.start()
 
 
 async def setup(client):
+    """
+    Function run when module loaded as an extension.
+    """
     async def daily_unban():
+        """
+        Unbans all members whose ban duration has expired.
+        Should be run using a scheduler.
+        """
         query = DbOperations.query_db(DbOperations.get_db(client.config), "select user,until from infractions where type = 'ban'")
         for elem in query:
             if elem["until"] and datetime.now() > datetime.fromtimestamp(int(elem["until"])):
@@ -57,11 +97,24 @@ async def setup(client):
     @client.tree.command(description="Supprimer des messages")
     @discord.app_commands.check(client.check_user_has_rights)
     async def clear(interaction: discord.Interaction, quantity: int = 1):
+        """
+        Command to delete a number of messages in a channel.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        quantity : int
+            The quantity of messages to remove, defaults to 1
+        """
         await interaction.response.send_message(f":arrows_counterclockwise: Suppression de {quantity} messages en cours ...", ephemeral=True)
         await interaction.channel.purge(limit=quantity)
 
     @client.tree.context_menu(name="Signaler un message")
     async def report_message(interaction: discord.Interaction, message: discord.Message):
+        """
+        Context action to report a message.
+        Can only be interacted from a message.
+        """
         if not hasattr(client.config, "report_channel"):
             return
         await interaction.response.send_message(f":white_check_mark: Merci d'avoir signalé ce message de {message.author.mention} à nos modérateurs.", ephemeral=True)
@@ -77,11 +130,25 @@ async def setup(client):
 
     @client.tree.context_menu(name="Signaler un utilisateur")
     async def report_user(interaction: discord.Interaction, user: discord.Member):
+        """
+        Context action to report a user.
+        Can only be interacted from a user.
+        """
         if not hasattr(client.config, "report_channel"):
             return
         await interaction.response.send_modal(UserReport(int(client.config.report_channel), interaction.user, user))
 
     async def fill_embed_with_infractions(query: List, embed: discord.Embed):
+        """
+        Dynamically fill an embed with the content of infractions.
+        
+        Parameters
+        ----------
+        query : List
+            The list of results of the query
+        embed : discord.Embed
+            The embed to fill
+        """
         for elem in query:
             match elem["type"]:
                 case "warn":
@@ -101,12 +168,31 @@ async def setup(client):
                     embed.add_field(name="", value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] :door: <@{elem['author']}> {elem['desc'][:30]}", inline=False)
 
     async def fill_embed_with_notes(query: List, embed: discord.Embed):
+        """
+        Dynamically fill an embed with the content of notes.
+        
+        Parameters
+        ----------
+        query : List
+            The list of results of the query
+        embed : discord.Embed
+            The embed to fill
+        """
         for elem in query:
             embed.add_field(name="", value=f"[{discord.utils.format_dt(datetime.fromtimestamp(int(elem['time'])), style='d')} - `{elem['id']:03d}`] <@{elem['author']}> {elem['note']}", inline=False)
 
     @client.tree.command(description="Obtenir des informations sur un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def userinfo(interaction: discord.Interaction, user: discord.User):
+        """
+        Command to get all available information about a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.User
+            The targeted user, can also be replaced by their ID
+        """
         infoembed = discord.Embed(colour=discord.Colour.blurple(), title="Infos utilisateur")
         infoembed.set_author(name=f"{user.name} ({user.id})", icon_url=user.display_avatar.url)
         infoembed.description = f"Créé : {discord.utils.format_dt(user.created_at)}\nRejoint : "
@@ -139,7 +225,16 @@ async def setup(client):
 
     @client.tree.command(description="Obtenir toutes les notes d'un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
-    async def notes(interaction: discord.Interaction, user: discord.Member):
+    async def notes(interaction: discord.Interaction, user: discord.User):
+        """
+        Command to get all notes for a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.User
+            The targeted user, can also be replaced by their ID
+        """
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title="Toutes les notes utilisateur")
         query = DbOperations.query_db(DbOperations.get_db(client.config), "select id,note,author,time from notes where user = ? order by id desc", [user.id])
         if not query:
@@ -151,6 +246,15 @@ async def setup(client):
     @client.tree.command(description="Obtenir toutes les infractions d'un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def inf(interaction: discord.Interaction, user: discord.Member):
+        """
+        Command to get all infractions for a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.User
+            The targeted user, can also be replaced by their ID
+        """
         embed = discord.Embed(colour=discord.Colour.dark_red(), title="Toutes les infractions utilisateur")
         query = DbOperations.query_db(DbOperations.get_db(client.config), "select id,type,author,time,description,until from infractions where user = ? order by id desc", [user.id])
         if not query:
@@ -162,6 +266,15 @@ async def setup(client):
     @client.tree.command(description="Obtenir toutes les infos sur une infraction")
     @discord.app_commands.check(client.check_user_has_rights)
     async def infinfo(interaction: discord.Interaction, infraction: int):
+        """
+        Command to get all information about an infraction for a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        infraction : int
+            The targeted infraction ID
+        """
         query = DbOperations.query_db(DbOperations.get_db(client.config), "select user,type,author,time,description,until from infractions where id = ?", [infraction])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title="Infraction")
         if query:
@@ -180,7 +293,18 @@ async def setup(client):
 
     @client.tree.command(description="Ajouter une note à un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
-    async def note(interaction: discord.Interaction, user: discord.Member, note: str):
+    async def note(interaction: discord.Interaction, user: discord.User, note: str):
+        """
+        Command to attach a note to a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.User
+            The targeted user, can also be replaced by their ID
+        note : str
+            The note text
+        """
         DbOperations.query_db(DbOperations.get_db(client.config), "insert into notes (user,time,author,note) values ( ?, ?, ?, ?)", [user.id, int(datetime.now().timestamp()), interaction.user.id, note])
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title="Note")
         embed.description = f":notepad_spiral: Vous avez ajouté une note à {user.mention} :\n> {note}"
@@ -189,6 +313,15 @@ async def setup(client):
     @client.tree.command(description="Obtenir toutes les infos sur une note")
     @discord.app_commands.check(client.check_user_has_rights)
     async def noteinfo(interaction: discord.Interaction, note: int):
+        """
+        Command to get all information about a note for a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        infraction : int
+            The targeted note ID
+        """
         query = DbOperations.query_db(DbOperations.get_db(client.config), "select user,note,author,time from notes where id = ?", [note])
         embed = discord.Embed(colour=discord.Colour.dark_red(), title="Note")
         if query:
@@ -205,6 +338,17 @@ async def setup(client):
     @client.tree.command(description="Avertir un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def warn(interaction: discord.Interaction, user: discord.Member, reason: str):
+        """
+        Command to send a warning to a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.Member
+            The targeted user, can also be replaced by their ID
+        reason : str
+            The reason text
+        """
         DbOperations.query_db(DbOperations.get_db(client.config), "insert into infractions (user,type,time,author,description) values ( ?, 'warn', ?, ?, ?)", [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.yellow(), title="Avertissement")
         embed.description = f":warning: Vous avez reçu un avertissement sur le serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
@@ -215,6 +359,17 @@ async def setup(client):
     @client.tree.command(description="Expulser un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def kick(interaction: discord.Interaction, user: discord.Member, reason: str):
+        """
+        Command to kick a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.Member
+            The targeted user, can also be replaced by their ID
+        reason : str
+            The reason text
+        """
         DbOperations.query_db(DbOperations.get_db(client.config), "insert into infractions (user,type,time,author,description) values ( ?, 'kick', ?, ?, ?)", [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.brand_red(), title="Expulsion")
         embed.description = f":door: Vous avez été expulsé du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
@@ -226,6 +381,19 @@ async def setup(client):
     @client.tree.command(description="Rendre un utilisateur muet")
     @discord.app_commands.check(client.check_user_has_rights)
     async def mute(interaction: discord.Interaction, user: discord.Member, reason: str, hours: int):
+        """
+        Command to mute a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.Member
+            The targeted user, can also be replaced by their ID
+        reason : str
+            The reason text
+        hours : int
+            The quantity of time, in hours
+        """
         td = timedelta(hours=hours)
         until = datetime.now() + td
         DbOperations.query_db(DbOperations.get_db(client.config), "insert into infractions (user,type,time,author,description,until) values ( ?, 'mute', ?, ?, ?, ?)", [user.id, int(datetime.now().timestamp()), interaction.user.id, reason, int(until.timestamp())])
@@ -240,6 +408,17 @@ async def setup(client):
     @client.tree.command(description="Retirer le mutisme d'un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def unmute(interaction: discord.Interaction, user: discord.Member, reason: str):
+        """
+        Command to unmute a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.Member
+            The targeted user, can also be replaced by their ID
+        reason : str
+            The reason text
+        """
         DbOperations.query_db(DbOperations.get_db(client.config), "insert into infractions (user,type,time,author,description) values ( ?, 'unmute', ?, ?, ?)", [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         embed = discord.Embed(colour=discord.Colour.green(), title="Mutisme désactivé")
         embed.description = f":loud_sound: Mutisme de l'utilisateur {user.mention} désactivé pour la raison suivante :\n> {reason}"
@@ -249,6 +428,19 @@ async def setup(client):
     @client.tree.command(description="Bannir un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def ban(interaction: discord.Interaction, user: discord.Member, reason: str, days: Optional[int] = None):
+        """
+        Command to ban a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.Member
+            The targeted user, can also be replaced by their ID
+        reason : str
+            The reason text
+        days : Optional[int]
+            The optional quantity of time, in days
+        """
         embed = discord.Embed(colour=discord.Colour.dark_red(), title="Bannissement")
         embed.description = f":hammer: Vous avez été banni du serveur `{interaction.guild.name}` pour la raison suivante :\n> {reason}"
         if days is not None:
@@ -265,6 +457,17 @@ async def setup(client):
     @client.tree.command(description="Débannir un utilisateur")
     @discord.app_commands.check(client.check_user_has_rights)
     async def unban(interaction: discord.Interaction, user: discord.User, reason: str):
+        """
+        Command to unban a user.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        
+        Parameters
+        ----------
+        user : discord.Member
+            The targeted user, can also be replaced by their ID
+        reason : str
+            The reason text
+        """
         DbOperations.query_db(DbOperations.get_db(client.config), "insert into infractions (user,type,time,author,description) values ( ?, 'unban', ?, ?, ?)", [user.id, int(datetime.now().timestamp()), interaction.user.id, reason])
         await interaction.guild.unban(user, reason=reason)
         embed = discord.Embed(colour=discord.Colour.green(), title="Débannissement")

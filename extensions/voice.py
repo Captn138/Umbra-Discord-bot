@@ -1,4 +1,11 @@
-# This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later
+"""
+extensions/voice.py (Umbra-Discord-Bot)
+:license: AGPL-3.0,see LICENSE for details
+
+This file is part of Umbra-Discord-Bot, licensed under AGPL-3.0-or-later.
+
+Temporary voice channel module for the Discord application. 
+"""
 
 from random import choice
 import discord
@@ -11,6 +18,19 @@ if __name__ == "__main__":
 
 
 def get_new_voice_channel_name(db):
+    """
+    Gets a random temporary voice channel name from MariaDB
+    
+    Parameters
+    ----------
+    db : mariadb.connections.Connection
+        The connexion to MariaDB
+    
+    Returns
+    -------
+    str
+        The randomly chosen name among all candidates in MariaDB
+    """
     query = DbOperations.query_db(db, "select name from voice_channel_names")
     if not query:
         return "liste vide - contactez la modération"
@@ -21,8 +41,16 @@ def get_new_voice_channel_name(db):
 
 
 async def setup(client):
+    """
+    Function run when module loaded as an extension.
+    """
     @client.event
     async def on_voice_state_update(member, before, after):
+        """
+        Method run when a user changes their voice status, overridden from discord.Client.
+        If the user lands in a watched channel, creates a new temporary voice channel and moves the user.
+        The the user leaves a temporary channel and was the last user from that channel, deletes the channel.
+        """
         if after.channel and after.channel.id in client.config.voice_watch_list:
             guild = after.channel.guild
             new_channel = await guild.create_voice_channel(
@@ -44,6 +72,10 @@ async def setup(client):
         discord.app_commands.Choice(name="register_temp_voice", value="register_temp_voice")
     ])
     async def debug(interaction: discord.Interaction, operation: discord.app_commands.Choice[str], channel: discord.VoiceChannel):
+        """
+        Debug commands for when the application has to restart while temporary voice channels are active.
+        Requires permissions checked by UmbraClient.check_user_has_rights().
+        """
         match operation.value:
             case "delete_voice":
                 view = Confirm()
