@@ -10,6 +10,7 @@ Main file for the creation of the Discord application.
 import logging
 import logging.handlers
 import traceback
+import sys
 from typing import List, Dict
 from datetime import datetime
 from importlib import import_module
@@ -187,7 +188,9 @@ async def on_error(event, *args, **kwargs): # pylint: disable=W0613
     Function run when the Discord application encounters an Exception not during an interaction runtime, overridden from discord.Client.
     """
     await client.change_presence(status=discord.Status.dnd)
-    logger.error("[on_error] %s: %s", event, traceback.print_exc())
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    logger.error("[on_error] %s - %s: %s", event, exc_type.__name__, exc_value)
+    traceback.print_exception(exc_type, exc_value, exc_tb)
 
 @client.event
 async def on_interaction(interaction):
