@@ -64,6 +64,29 @@ async def setup(client):
                 await before.channel.delete()
                 client.config.temp_voice_list.remove(before.channel.id)
 
+    @client.tree.command(description="Limiter le nombre d'utilisateurs pouvant se connecter au salon vocal")
+    @discord.app_commands.describe(limit="Nombre maximal d'utilisateurs, 0 pour désactiver")
+    async def limit(interaction: discord.Interaction, limit: int = 0):
+        if not isinstance(interaction.channel, discord.VoiceChannel):
+            await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande que dans un salon vocal.", ephemeral=True)
+            return
+        try:
+            user_voice = await interaction.user.fetch_voice()
+        except discord.NotFound:
+            await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande qu'en étant connecté à un salon vocal.", ephemeral=True)
+            return
+        if user_voice.channel.id != interaction.channel.id:
+            await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande que dans le salon vocal dans lequel tu es connecté.", ephemeral=True)
+            return
+        if limit > 99 or limit < 0:
+            await interaction.response.send_message(":exclamation: La limite doit être un nombre entre 0 et 99.", ephemeral=True)
+            return
+        await interaction.channel.edit(user_limit=limit)
+        if limit == 0:
+            await interaction.response.send_message(":white_check_mark: La limite d'utilisateurs pour ce salon vocal a été désactivée.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f":white_check_mark: La limite d'utilisateurs pour ce salon vocal a été changée à {limit}.", ephemeral=True)
+
     @client.tree.command(description="Commandes de debug")
     @discord.app_commands.check(client.check_user_has_rights)
     @discord.app_commands.choices(operation=[
