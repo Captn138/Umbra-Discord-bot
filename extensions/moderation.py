@@ -9,6 +9,7 @@ Moderation commands and functions for the Discord application.
 
 from typing import List, Optional
 from datetime import datetime, timedelta
+from asyncio import TaskGroup
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -93,6 +94,69 @@ async def setup(client):
                 reason = "Levée de sanction automatique"
                 DbOperations.query_db(DbOperations.get_db(client.config), "insert into infractions (user,type,time,author,description) values ( ?, 'unban', ?, ?, ?)", [user.id, int(datetime.now().timestamp()), client.user.id, reason])
                 await guild.unban(user, reason=reason)
+
+    async def count_messages_in_channel(channel: discord.TextChannel, member: discord.Member, days: Optional[int] = None):
+        """
+        Counts all messages a user sent in a specified channel.
+        Optionnally limits to a number of days.
+        
+        Parameters
+        ----------
+        channel : discord.TextChannel
+            The channel in which to search
+        member : discord.Member
+            The member for which to search
+        days : Optional[int]
+            The limit of days
+        
+        Returns
+        -------
+        int:
+            The number of messages
+        """
+        count = 0
+        try:
+            if days:
+                async for message in channel.history(limit=None, after=datetime.now() - timedelta(days=days)):
+                    if message.author == member:
+                        count += 1
+            else:
+                async for message in channel.history(limit=None):
+                    if message.author == member:
+                        count += 1
+        except discord.Forbidden:
+            pass
+        return count
+
+    async def count_all_messages(guild: discord.Guild, member: discord.Member, days: Optional[int] = None):
+        """
+        Counts all messages a user sent in a specified server.
+        Optionnally limits to a number of days.
+        
+        Parameters
+        ----------
+        guild : discord.Guild
+            The channel in which to search
+        member : discord.Member
+            The member for which to search
+        days : Optional[int]
+            The limit of days
+        
+        Returns
+        -------
+        int:
+            The number of messages
+        """
+        results = []
+        async with TaskGroup() as tg:
+            def add_task(channel):
+                async def task():
+                    count = await count_messages_in_channel(channel, member, days)
+                    results.append(count)
+                tg.create_task(task())
+            for channel in guild.text_channels:
+                add_task(channel)
+        return sum(results)
 
     @client.tree.command(description="Supprimer des messages")
     @discord.app_commands.check(client.check_user_has_rights)
@@ -202,7 +266,9 @@ async def setup(client):
             for role in user.roles:
                 if role.name != "@everyone":
                     roles += role.mention + " "
-            infoembed.add_field(name="Rôles", value=roles)
+            infoembed.add_field(name="Rôles", value=roles, inline=False)
+            infoembed.add_field(name="Messages (30j)", value=await count_all_messages(client.get_guild(client.config.guild_id), user, 30))
+            infoembed.add_field(name="Messages (7j)", value=await count_all_messages(client.get_guild(client.config.guild_id), user, 7))
         else:
             infoembed.description += "Not in server"
         infembed = discord.Embed(colour=discord.Colour.dark_red(), title="Dernières infractions utilisateur")
