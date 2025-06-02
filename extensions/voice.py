@@ -67,6 +67,9 @@ async def setup(client):
     @client.tree.command(description="Limiter le nombre d'utilisateurs pouvant se connecter au salon vocal")
     @discord.app_commands.describe(limit="Nombre maximal d'utilisateurs, 0 pour désactiver")
     async def limit(interaction: discord.Interaction, limit: int = 0):
+        """
+        Manages the user limit on a voice channel.
+        """
         if not isinstance(interaction.channel, discord.VoiceChannel):
             await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande que dans un salon vocal.", ephemeral=True)
             return
