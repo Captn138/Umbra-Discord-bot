@@ -17,33 +17,32 @@ if __name__ == "__main__":
     raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
 
 
-def get_new_voice_channel_name(db):
-    """
-    Gets a random temporary voice channel name from MariaDB
-    
-    Parameters
-    ----------
-    db : mariadb.connections.Connection
-        The connexion to MariaDB
-    
-    Returns
-    -------
-    str
-        The randomly chosen name among all candidates in MariaDB
-    """
-    query = DbOperations.query_db(db, "select name from voice_channel_names")
-    if not query:
-        return "liste vide - contactez la modération"
-    names_list = []
-    for elem in query:
-        names_list.append(elem["name"])
-    return choice(names_list)
-
-
 async def setup(client):
     """
     Function run when module loaded as an extension.
     """
+    def get_new_voice_channel_name(db):
+        """
+        Gets a random temporary voice channel name from MariaDB
+
+        Parameters
+        ----------
+        db : mariadb.connections.Connection
+            The connexion to MariaDB
+
+        Returns
+        -------
+        str
+            The randomly chosen name among all candidates in MariaDB
+        """
+        query = DbOperations.query_db(db, "select name from voice_channel_names")
+        if not query:
+            return "liste vide - contactez la modération"
+        names_list = []
+        for elem in query:
+            names_list.append(elem["name"])
+        return choice(names_list)
+
     @client.event
     async def on_voice_state_update(member, before, after):
         """
