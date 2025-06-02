@@ -17,33 +17,32 @@ if __name__ == "__main__":
     raise RuntimeError("Ce module n'est pas destiné à être exécuté directement.")
 
 
-def get_new_voice_channel_name(db):
-    """
-    Gets a random temporary voice channel name from MariaDB
-    
-    Parameters
-    ----------
-    db : mariadb.connections.Connection
-        The connexion to MariaDB
-    
-    Returns
-    -------
-    str
-        The randomly chosen name among all candidates in MariaDB
-    """
-    query = DbOperations.query_db(db, "select name from voice_channel_names")
-    if not query:
-        return "liste vide - contactez la modération"
-    names_list = []
-    for elem in query:
-        names_list.append(elem["name"])
-    return choice(names_list)
-
-
 async def setup(client):
     """
     Function run when module loaded as an extension.
     """
+    def get_new_voice_channel_name(db):
+        """
+        Gets a random temporary voice channel name from MariaDB
+
+        Parameters
+        ----------
+        db : mariadb.connections.Connection
+            The connexion to MariaDB
+
+        Returns
+        -------
+        str
+            The randomly chosen name among all candidates in MariaDB
+        """
+        query = DbOperations.query_db(db, "select name from voice_channel_names")
+        if not query:
+            return "liste vide - contactez la modération"
+        names_list = []
+        for elem in query:
+            names_list.append(elem["name"])
+        return choice(names_list)
+
     @client.event
     async def on_voice_state_update(member, before, after):
         """
@@ -64,6 +63,29 @@ async def setup(client):
             if len(before.channel.members) == 0:
                 await before.channel.delete()
                 client.config.temp_voice_list.remove(before.channel.id)
+
+    @client.tree.command(description="Limiter le nombre d'utilisateurs pouvant se connecter au salon vocal")
+    @discord.app_commands.describe(limit="Nombre maximal d'utilisateurs, 0 pour désactiver")
+    async def limit(interaction: discord.Interaction, limit: int = 0):
+        if not isinstance(interaction.channel, discord.VoiceChannel):
+            await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande que dans un salon vocal.", ephemeral=True)
+            return
+        try:
+            user_voice = await interaction.user.fetch_voice()
+        except discord.NotFound:
+            await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande qu'en étant connecté à un salon vocal.", ephemeral=True)
+            return
+        if user_voice.channel.id != interaction.channel.id:
+            await interaction.response.send_message(":exclamation: Tu ne peux exécuter cette commande que dans le salon vocal dans lequel tu es connecté.", ephemeral=True)
+            return
+        if limit > 99 or limit < 0:
+            await interaction.response.send_message(":exclamation: La limite doit être un nombre entre 0 et 99.", ephemeral=True)
+            return
+        await interaction.channel.edit(user_limit=limit)
+        if limit == 0:
+            await interaction.response.send_message(":white_check_mark: La limite d'utilisateurs pour ce salon vocal a été désactivée.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f":white_check_mark: La limite d'utilisateurs pour ce salon vocal a été changée à {limit}.", ephemeral=True)
 
     @client.tree.command(description="Commandes de debug")
     @discord.app_commands.check(client.check_user_has_rights)

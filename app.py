@@ -10,6 +10,7 @@ Main file for the creation of the Discord application.
 import logging
 import logging.handlers
 import traceback
+import sys
 from typing import List, Dict
 from datetime import datetime
 from importlib import import_module
@@ -150,7 +151,7 @@ class UmbraClient(discord.Client):
         """
         self.config.launch_time = int(datetime.now().timestamp())
         del self.config.token
-        logger.info("%s (id: %s) logged in !", client.user.name, client.user.id)
+        logger.info("%s (id: %s) logged in !", self.user.name, self.user.id)
         for extension in self.config.initial_extensions:
             mod = import_module(f"extensions.{extension}")
             if hasattr(mod, "on_ready") and callable(getattr(mod, "on_ready")):
@@ -187,7 +188,9 @@ async def on_error(event, *args, **kwargs): # pylint: disable=W0613
     Function run when the Discord application encounters an Exception not during an interaction runtime, overridden from discord.Client.
     """
     await client.change_presence(status=discord.Status.dnd)
-    logger.error("[on_error] %s: %s", event, traceback.print_exc())
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    logger.error("[on_error] %s - %s: %s", event, exc_type.__name__, exc_value)
+    traceback.print_exception(exc_type, exc_value, exc_tb)
 
 @client.event
 async def on_interaction(interaction):
