@@ -150,7 +150,7 @@ class UmbraClient(discord.Client):
         """
         self.config.launch_time = int(datetime.now().timestamp())
         del self.config.token
-        logger.info("%s (id: %s) logged in !", client.user.name, client.user.id)
+        logger.info("%s (id: %s) logged in !", self.user.name, self.user.id)
         for extension in self.config.initial_extensions:
             mod = import_module(f"extensions.{extension}")
             if hasattr(mod, "on_ready") and callable(getattr(mod, "on_ready")):
