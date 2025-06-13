@@ -96,6 +96,9 @@ async def setup(client):
             The custom message to send
         """
         if interaction.channel_id in client.config.here_allowed_channels:
+            if "@everyone" in message or "@here" in message:
+                await interaction.response.send_message(":exclamation: Tu ne peux pas mentionner everyone ou here dans ton message.", ephemeral=True)
+                return
             try:
                 voice_status = await interaction.user.fetch_voice()
             except discord.NotFound:
