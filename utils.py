@@ -57,7 +57,7 @@ class UmbraClientConfig:
     """
     def __init__(self, initial_extensions: List[str], config: dict):
         self.initial_extensions = initial_extensions
-        self.version = "v1.5"
+        self.version = "v1.5.1"
         self.source = "https://github.com/Captn138/Umbra-Discord-bot"
         self.debug = config.get("debug", "false") == "true"
         self.game = config.get("game", None)
